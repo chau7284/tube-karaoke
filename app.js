@@ -6,10 +6,10 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 const schedule = require('node-schedule');
-const seconds = '*/30 * * * * *';
+const seconds = '*/1 * * * * *';
 
 schedule.scheduleJob(seconds, function (time) {
-
+    //connections[0].emit("timestamp", 0);
 });
 
 let connections = [];
@@ -32,4 +32,4 @@ app.get("/", (req, res) => {
 });
 
 var extract = require('./routes/extract');
-app.use('/extract', extract);
+app.use('/', extract);
