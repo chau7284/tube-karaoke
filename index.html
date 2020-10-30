@@ -30,6 +30,16 @@
             </div>
         </div>
 
+        <label id="videoid"> Video Id </label>
+        <form id="form">
+            <div class="form-group">
+                <label for="">Enter Message:</label>
+                <input class="form-control" id="input-message"></input>
+                <br />
+                <input type="submit" class="btn btn-primary" value="Done">
+            </div>
+        </form>
+
     </div>
 
     <script>
@@ -38,6 +48,15 @@
             socket.on('timestamp', (time, connect) => {
                 $('#timestamp').html(time);
                 $('#user-online').html("Users Online: " + (connect - 1));
+            });
+
+            socket.on('EXTRACT', (videoId) => {
+                $('#videoid').html(videoId);
+            });
+
+            $('#form').submit((e) =>{
+                e.preventDefault();
+                socket.emit("EXTRACT", $('#input-message').val);
             });
         });
     </script>
