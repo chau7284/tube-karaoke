@@ -20,10 +20,6 @@ app.get("/", (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-var extract = require('./routes/extract');
-app.use('/youtube', extract);
-
-
 app.get('/extract', async (req, res) => {
     // if (req.headers['secret'] !== settings.SECRET) {
     //     res.json(settings.UN_AUTH);
@@ -31,48 +27,61 @@ app.get('/extract', async (req, res) => {
     //     return;
     // }
     var videoId = req.query.videoId;
-    findWorker(res, videoId);
+    await findExtractWorker(videoId).then(streamData =>{
+        res.json(streamData);
+        res.end();
+    })
 });
 
-function findWorker(res, videoId) {
-    if (workers.length > 0) {
-        var socket = workers[0];
-        workers.shift();
-        console.log('Remove Worker: ' + workers.length);
-        socket.emit("EXTRACT", videoId);
-        socket.on("EXTRACT", streamData => {
-            //workers.push(socket);
-            //res.json(streamData);
-            //res.end();
-            console.log('Add Worker: ' + streamData);
-            console.log('Add Worker: ' + workers.length);
-        });
-    } else {
-        res.json(null);
+function findExtractWorker(videoId) {
+    return new Promise((resolve) => {
+        if (connections.length > 0) {
+            var socket = connections[0];
+            socket.emit("EXTRACT", videoId);
+            socket.on(videoId, streamData => {
+                resolve(streamData);
+            });
+        }else{
+            resolve(null);
+        } 
+    }) 
+}
+
+app.get('/search', async (req, res) => {
+    // if (req.headers['secret'] !== settings.SECRET) {
+    //     res.json(settings.UN_AUTH);
+    //     res.end();
+    //     return;
+    // }
+    var keyword = req.query.keyword;
+    var deviceId = req.query.deviceId; //Split 11 charactor
+    await findSearchWorker(deviceId, keyword).then(songs =>{
+        res.json(songs);
         res.end();
-        console.log('Busy Worker: ' + 0);
-    }
+    })
+});
+
+function findSearchWorker(deviceId, keyword) {
+    return new Promise((resolve) => {
+        if (connections.length > 0) {
+            var socket = connections[0];
+            socket.emit("SEARCH", keyword, deviceId);
+            socket.on(deviceId, songs => {
+                resolve(songs);
+            });
+        }else{
+            resolve(null);
+        } 
+    }) 
 }
 
 let connections = [];
-let workers = [];
 io.sockets.on('connection', (socket) => {
     connections.push(socket);
-    workers.push(socket);
-    console.log('<Connected>: -> %s sockets connected', connections.length);
+    console.log('<Connected>: -> %s sockets connected', socket.id);
 
     socket.on('disconnect', () => {
         connections.splice(connections.indexOf(socket), 1);
         console.log('<Disconnect>: -> %s sockets connected', connections.length);
     });
-
-
-    socket.emit("EXTRACT", "Coneect");
-    socket.on("EXTRACT", (a) => {
-        //workers.push(socket);
-        //res.json(streamData);
-        //res.end();
-        console.log('Add Worker: ' + a);
-        //console.log('Add Worker: ' + workers.length);
-    })
 })
