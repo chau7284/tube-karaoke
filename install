@@ -1,4 +1,6 @@
+//chau7284
 npm init
 npm install express body-parser node-schedule socket.io axios
-npm uninstall socket-io
+//npm uninstall socket-io
 npm install firebase-admin
+npm install mongoose
