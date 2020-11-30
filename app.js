@@ -40,16 +40,50 @@ app.get("/", (req, res) => {
 var link = require('./routes/link');
 app.use('/link', link);
 
+var account = require('./routes/account');
+app.use('/account', account);
+
 
 //////////////////////////////////////////////////
 var db = require('./mongo');
-//Public
-app.get('/get', async (req, res) => {
-    if (req.headers['secret'] !== settings.SECRET_PUBLIC) {
-        res.json(settings.UN_AUTH);
+var dbAccount = require('./dbAccount');
+const key = async (req, res, next) => {
+    try {
+        var apiKey = req.query.key;
+
+        await dbAccount.findOne(
+            { key: apiKey }
+        ).exec((error, user) => {
+            if (!error) {
+                if (user == null) {
+                    res.json(settings.KEY_INVALID);
+                    res.end();
+                } else {
+                    if (user.counter > 0) {
+                        user.counter--;
+                        user.updated = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
+                        user.save()
+                        next();
+                    } else {
+                        res.json(settings.KEY_LIMITED);
+                        res.end();
+                    }
+                }
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+
+    } catch (error) {
+        res.json(settings.ERROR);
         res.end();
-        return;
     }
+}
+
+
+//Public
+app.get('/get', key, async (req, res) => {
     try {
         var videoId = req.query.videoId;
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
@@ -63,7 +97,6 @@ app.get('/get', async (req, res) => {
                     console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
                     res.json(streamData);
                     res.end();
-                    //Video Not in Data -> Write to DB
                 })
             }
         });
@@ -80,6 +113,7 @@ function findExtractWorker(videoId) {
             var socket = connections[0];
             socket.emit("EXTRACT", videoId);
             socket.on(videoId, streamData => {
+                socket.off(videoId);
                 resolve(streamData);
             });
         } else {
