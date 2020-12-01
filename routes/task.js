@@ -47,7 +47,7 @@ function resp(res) {
     tmp.push(SONGS[0]);
     SONGS.shift();
     if (tmp[0] != null)
-        console.log('<<<<<- RETURN-TASK ->>>>> :' + tmp[0]._id + " - index: " + SONGS.length + "/" + PAGE);
+        console.log('<<<<<- FIND-TASK ->>>>> :' + tmp[0]._id + " - index: " + SONGS.length + "/" + PAGE);
     res.json(tmp);
     res.end();
 }

@@ -7,3 +7,22 @@ exports.createToken = function () {
 
     return session;
 }
+
+exports.checkExpire = function (url) {
+    var expire = extractTime(url);
+    var current = getCurrentTime();
+    return current >= expire;
+}
+
+function extractTime(url) {
+    var regex = 'expire=([^"]{10})';
+    var match = url.match(regex);
+    if (match != null && match.length > 1) {
+        return match[1];
+    }
+    return 0;
+}
+
+function getCurrentTime() {
+    return Math.floor(Date.now() / 1000);
+}

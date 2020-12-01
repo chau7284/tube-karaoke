@@ -4,3 +4,4 @@ npm install express body-parser node-schedule socket.io axios
 //npm uninstall socket-io
 npm install firebase-admin
 npm install mongoose
+/Users/kingpes/Documents/MongoDB/bin/mongod --dbpath /Users/kingpes/Documents/MongoDB/db
