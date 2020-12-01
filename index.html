@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        <label id="videoid"> Video Id </label>
+        <label id="videoid"> Video Id: </label>
         <form id="form">
             <div class="form-group">
                 <label for="">Enter Message:</label>
@@ -45,18 +45,23 @@
     <script>
         $(() => {
             var socket = io.connect();
+            var vId;
             socket.on('timestamp', (time, connect) => {
                 $('#timestamp').html(time);
                 $('#user-online').html("Users Online: " + (connect - 1));
             });
 
             socket.on('EXTRACT', (videoId) => {
+                vId = videoId;
                 $('#videoid').html(videoId);
             });
 
             $('#form').submit((e) =>{
                 e.preventDefault();
-                socket.emit("EXTRACT", $('#input-message').val);
+                var data = {
+                    "videoId": $('#input-message').val()
+                }
+                socket.emit(vId,data);
             });
         });
     </script>
