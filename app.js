@@ -156,7 +156,6 @@ function findExtractFarmer(videoId) {
                     clearTimeout(timeout);
                     socket.free = true;
                     resolve(streamData);
-                    checkQueueList();
                 });
             } else {
                 resolve(null);
