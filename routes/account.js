@@ -54,8 +54,6 @@ router.post('/signup', (req, res) => {
         "created": new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
     }
 
-    console.log(JSON.stringify(account))
-
     try {
         dbAccount.create(
             account

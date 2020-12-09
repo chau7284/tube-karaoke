@@ -26,3 +26,7 @@ function extractTime(url) {
 function getCurrentTime() {
     return Math.floor(Date.now() / 1000);
 }
+
+exports.convertDate = function (date) {
+    return date.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
