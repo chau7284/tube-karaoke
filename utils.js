@@ -30,3 +30,12 @@ function getCurrentTime() {
 exports.convertDate = function (date) {
     return date.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
 }
+
+exports.createId = function () {
+    var date = new Date();
+    var y = String(date.getFullYear()).substring(2);
+    var m = date.getMonth()+1;
+    var c = String(Date.now()).substring(6);
+    if(m < 10) return y+'0'+m+ c;
+    return y+m+ c;
+}

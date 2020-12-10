@@ -4,8 +4,8 @@ const userSchema = new mongoose.Schema(
     {
         _id: String,
         password: String,
-        name: String,
-        session: String,
+        token: String,
+        device: String,
         active: Number,
         created: Date,
         updated: Date,

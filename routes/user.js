@@ -9,11 +9,11 @@ const e = require('express');
 const auth = async (req, res, next) => {
     try {
 
-        var sess = req.headers['session'];
+        var tk = req.headers['token'];
         var id = req.headers['id'];
 
         await dbUser.findOne(
-            { _id: id, session: sess }
+            { _id: id, token: tk }
         ).exec((error, user) => {
             if (!error) {
                 if (user == null) {
@@ -36,7 +36,7 @@ const auth = async (req, res, next) => {
 }
 
 const checkExpired = async (user) => {
-    if (user.expired == undefined) u.expired = new Date();
+    if (user.expired == undefined) user.expired = new Date();
     var expired = user.expired.getTime();
     var current = new Date().getTime();
 
@@ -58,13 +58,14 @@ router.post('/signup', (req, res) => {
         "password":"device",
     *  }
     */
+   var id = utils.createId();
     var params = req.body;
     var account = {
-        "_id": params._id,
+        "_id": id,
         "password": params.password,
-        "name": params._id,
+        "device": params._id,
         "active": 0,
-        "created": new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
+        "created": new Date()
     }
 
     try {
@@ -73,6 +74,9 @@ router.post('/signup', (req, res) => {
             ,
             (err, user) => {
                 if (!err) {
+                    var session = utils.createToken();
+                    user.token = session;
+                    user.save();
                     res.json(user);
                     res.end();
                 } else {
@@ -96,7 +100,7 @@ router.post('/signin', (req, res) => {
     }
     /**
     *  {
-        "_id":"device",
+        "device":"device",
         "password":"device"
     *  }
     */
@@ -104,12 +108,15 @@ router.post('/signin', (req, res) => {
 
     try {
         dbUser.findOne(
-            params
+            {
+                _id: params._id,
+                device: params.device
+            }
         ).exec((error, user) => {
             if (!error) {
                 if (user) {
                     var session = utils.createToken();
-                    user.session = session;
+                    user.token = session;
                     user.save();
                     res.json(user);
                     res.end();
@@ -142,6 +149,7 @@ router.put('/update', auth, (req, res) => {
     *  }
     */
     var params = req.body;
+    params.updated = new Date();
 
     try {
         dbUser.updateOne(
@@ -176,14 +184,14 @@ router.put('/update', auth, (req, res) => {
     }
 })
 
-router.delete('/delete', auth, (req, res) => {
+router.delete('/delete',auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
         return;
     }
 
-    var id = req.query._id;
+    var id = req.query.id;
 
     try {
         dbUser.deleteOne(
@@ -205,7 +213,7 @@ router.delete('/delete', auth, (req, res) => {
     }
 })
 
-router.delete('/deletes', auth, (req, res) => {
+router.delete('/deletes',auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -232,7 +240,41 @@ router.delete('/deletes', auth, (req, res) => {
     }
 })
 
-router.put('/active', auth, (req, res) => {
+router.get('/selects',auth, (req, res)=>{
+    var page = req.query.page;
+    var limit = req.query.limit;
+    dbUser.find()
+        .limit(parseInt(limit))
+        .skip(parseInt(page))
+        .exec((error, users) => {
+            if (!error) {
+                res.json(users);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+})
+
+router.get('/select',auth, (req, res)=>{
+    var id = req.query.id;
+    dbUser.findOne(
+        {
+            _id: id
+        }
+    ).exec((error, user) => {
+        if (!error) {
+            res.json(user);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+})
+
+router.put('/active',auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -241,7 +283,7 @@ router.put('/active', auth, (req, res) => {
 
     /**
     *  {
-        "name" : "0901810481"
+        "_id" : ""
         "active": 1,
         "expired": 30
     *  }
@@ -250,24 +292,25 @@ router.put('/active', auth, (req, res) => {
     try {
         dbUser.findOne(
             {
-                _id: params.name
+                _id: params._id
             }
         ).exec((err, user) => {
-            if (!err) {
+            if (!err && user) {
                 var newDate = new Date();
-                if (user.expired == undefined) u.expired = newDate;
+                if (user.expired == undefined) user.expired = newDate;
                 var expired = user.expired.getTime();
                 var current = newDate.getTime();
             
                 if (current > expired) {                   
-                    newDate.setDate(newDate.getDate() + params.expired);
+                    newDate.setDate(newDate.getDate() + Number(params.expired));
                     user.expired = newDate;
                 }else{
                      var oldDate = user.expired;
-                     oldDate.setDate(oldDate.getDate() + params.expired)   
+                     oldDate.setDate(oldDate.getDate() + Number(params.expired));
+                     user.expired = new Date(oldDate);   
                 }
 
-                user.active = 1;
+                user.active = params.active;
                 user.save();
                 res.json(user);
                 res.end();
