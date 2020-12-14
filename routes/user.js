@@ -4,7 +4,6 @@ const settings = require('../settings');
 const firestore = require('../firestore');
 const utils = require('../utils');
 const dbUser = require('../dbUser');
-const e = require('express');
 
 /**
 *  

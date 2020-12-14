@@ -52,6 +52,9 @@ app.use('/account', account);
 var user = require('./routes/user');
 app.use('/user', user);
 
+var tracking = require('./routes/tracking');
+app.use('/tracking', tracking);
+
 
 //////////////////////////////////////////////////
 var db = require('./mongo');

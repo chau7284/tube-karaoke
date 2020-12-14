@@ -99,3 +99,125 @@ exports.get = function (params, res) {
         });
 }
 
+exports.paging = function (params, res) {
+    try {
+        if (params.collection == null || params.collection === '') {
+            res.json(
+                {
+                    collection: '',
+                    data: [],
+                }
+            );
+        } else {
+            let docRef = db.collection(params.collection);
+            if (params.order == null || params.order == "") {
+                res.json(
+                    {
+                        collection: '',
+                        data: [],
+                    }
+                );
+            } else {
+                if (params.where == null || params.where == "") {
+                    if (params.order.next == null || params.order.next == "") {
+                        console.log('PAGING-FIRST');
+                        docRef.orderBy(params.order.field).limit(params.order.limit)
+                            .get()
+                            .then(snapshot => {
+                                let d = snapshot.docs[snapshot.docs.length - 1];
+                                let last = d.data()[params.order.field];
+                                var arr = [];
+                                snapshot.forEach(doc => {
+                                    var d = {
+                                        document: doc.id,
+                                        field: doc.data(),
+                                        next: last
+                                    }
+                                    arr.push(d);
+                                });
+
+                                res.json({
+                                    collection: params.collection,
+                                    data: arr
+                                });
+                            });
+                    } else {
+                        console.log('PAGING-NEXT');
+                        docRef.orderBy(params.order.field).startAfter(params.order.next).limit(params.order.limit)
+                            .get()
+                            .then(snapshot => {
+                                let d = snapshot.docs[snapshot.docs.length - 1];
+                                let last = d.data()[params.order.field];
+
+                                var arr = [];
+                                snapshot.forEach(doc => {
+                                    var d = {
+                                        document: doc.id,
+                                        field: doc.data(),
+                                        next: last
+                                    }
+                                    arr.push(d);
+                                });
+
+                                res.json({
+                                    collection: params.collection,
+                                    data: arr
+                                });
+                            });
+                    }
+                } else {
+                    if (params.order.next == null || params.order.next == "") {
+                        console.log('PAGING-WHERE-FIRST');
+                        docRef.where(params.where.field, params.where.condition, params.where.value).orderBy(params.order.field).limit(params.order.limit)
+                            .get()
+                            .then(snapshot => {
+                                let d = snapshot.docs[snapshot.docs.length - 1];
+                                let last = d.data()[params.order.field];
+                                var arr = [];
+                                snapshot.forEach(doc => {
+                                    var d = {
+                                        document: doc.id,
+                                        field: doc.data(),
+                                        next: last
+                                    }
+                                    arr.push(d);
+                                });
+
+                                res.json({
+                                    collection: params.collection,
+                                    data: arr
+                                });
+                            });
+                    } else {
+                        console.log('PAGING-WHERE-NEXT');
+                        docRef.where(params.where.field, params.where.condition, params.where.value).orderBy(params.order.field).startAfter(params.order.next).limit(params.order.limit)
+                            .get()
+                            .then(snapshot => {
+                                let d = snapshot.docs[snapshot.docs.length - 1];
+                                let last = d.data()[params.order.field];
+
+                                var arr = [];
+                                snapshot.forEach(doc => {
+                                    var d = {
+                                        document: doc.id,
+                                        field: doc.data(),
+                                        next: last
+                                    }
+                                    arr.push(d);
+                                });
+
+                                res.json({
+                                    collection: params.collection,
+                                    data: arr
+                                });
+                            });
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        res.send("OK");
+        res.end();
+    }
+}
+
