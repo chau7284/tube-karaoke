@@ -17,7 +17,7 @@ let db = admin.firestore();
 //    }
 //}
 
-exports.insert_silent = function(params){
+exports.insert_silent = function (params) {
     params.field.time = admin.firestore.FieldValue.serverTimestamp();
     docRef = db.collection(params.collection).doc(params.document);
     docRef.set(
@@ -25,18 +25,47 @@ exports.insert_silent = function(params){
     );
 }
 
-exports.insert = function(params, res){
+exports.insert = function (params, res) {
     params.field.time = admin.firestore.FieldValue.serverTimestamp();
     docRef = db.collection(params.collection).doc(params.document);
     docRef.set(
         params.field
-    ).then(() =>{
+    ).then(() => {
         res.send("OK");
         res.end();
     });
 }
 
-exports.get = function(params, res){
+exports.gets = function (params, res) {
+    let docRef = db.collection(params.collection)
+    docRef.get()
+        .then(snapshot => {
+            var arr = [];
+            snapshot.forEach(doc => {
+                var d = {
+                    document: doc.id,
+                    field: doc.data()
+                }
+                arr.push(d);
+            });
+
+            res.json({
+                collection: params.collection,
+                data: arr
+            });
+            res.end();
+
+        })
+        .catch(err => {
+            res.json({
+                collection: params.collection,
+                data: []
+            });
+            res.end();
+        });
+}
+
+exports.get = function (params, res) {
     let docRef = db.collection(params.collection).doc(params.document);
     docRef.get()
         .then(doc => {

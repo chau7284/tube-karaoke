@@ -70,8 +70,8 @@ const key = async (req, res, next) => {
                 } else {
                     if (user.counter > 0) {
                         user.counter--;
-                        user.updated = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
-                            user.save()
+                        user.updated = new Date();
+                        user.save()
                         next();
                     } else {
                         res.json(settings.KEY_LIMITED);

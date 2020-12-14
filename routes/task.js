@@ -1,6 +1,12 @@
 const settings = require('../settings');
 const dbSong = require('../dbSong');
 
+/**
+*  
+* REFERENT LINK 
+* 
+*/
+
 exports.current = function (res) {
     res.send(SONGS.length + "/" + PAGE);
     res.end();
@@ -12,7 +18,7 @@ exports.find = function (res) {
 
 
 let SONGS = [];
-const LIMIT = 5;
+const LIMIT = 100;
 let PAGE = 0;
 
 async function find_song(res){

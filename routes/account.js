@@ -4,6 +4,12 @@ const settings = require('../settings');
 const utils = require('../utils');
 const dbAccount = require('../dbAccount');
 
+/**
+*  
+* GET LINK API KEY 
+* 
+*/
+
 const auth = async (req, res, next) => {
     try {
 
@@ -51,7 +57,7 @@ router.post('/signup', (req, res) => {
         "password": params.password,
         "key": key,
         "counter": 100,
-        "created": new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }),
+        "created": new Date()
     }
 
     try {

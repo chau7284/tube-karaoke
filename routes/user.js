@@ -6,6 +6,12 @@ const utils = require('../utils');
 const dbUser = require('../dbUser');
 const e = require('express');
 
+/**
+*  
+* DZOKARA 
+* 
+*/
+
 const auth = async (req, res, next) => {
     try {
 
@@ -58,7 +64,7 @@ router.post('/signup', (req, res) => {
         "password":"device",
     *  }
     */
-   var id = utils.createId();
+    var id = utils.createId();
     var params = req.body;
     var account = {
         "_id": id,
@@ -184,7 +190,7 @@ router.put('/update', auth, (req, res) => {
     }
 })
 
-router.delete('/delete',auth, (req, res) => {
+router.delete('/delete', auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -213,7 +219,7 @@ router.delete('/delete',auth, (req, res) => {
     }
 })
 
-router.delete('/deletes',auth, (req, res) => {
+router.delete('/deletes', auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -240,7 +246,7 @@ router.delete('/deletes',auth, (req, res) => {
     }
 })
 
-router.get('/selects',auth, (req, res)=>{
+router.get('/selects', auth, (req, res) => {
     var page = req.query.page;
     var limit = req.query.limit;
     dbUser.find()
@@ -257,7 +263,7 @@ router.get('/selects',auth, (req, res)=>{
         });
 })
 
-router.get('/select',auth, (req, res)=>{
+router.get('/select', auth, (req, res) => {
     var id = req.query.id;
     dbUser.findOne(
         {
@@ -274,7 +280,7 @@ router.get('/select',auth, (req, res)=>{
     });
 })
 
-router.put('/active',auth, (req, res) => {
+router.put('/active', auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -300,14 +306,14 @@ router.put('/active',auth, (req, res) => {
                 if (user.expired == undefined) user.expired = newDate;
                 var expired = user.expired.getTime();
                 var current = newDate.getTime();
-            
-                if (current > expired) {                   
+
+                if (current > expired) {
                     newDate.setDate(newDate.getDate() + Number(params.expired));
                     user.expired = newDate;
-                }else{
-                     var oldDate = user.expired;
-                     oldDate.setDate(oldDate.getDate() + Number(params.expired));
-                     user.expired = new Date(oldDate);   
+                } else {
+                    var oldDate = user.expired;
+                    oldDate.setDate(oldDate.getDate() + Number(params.expired));
+                    user.expired = new Date(oldDate);
                 }
 
                 user.active = params.active;
@@ -347,25 +353,49 @@ router.get("/app-config", (req, res) => {
 /*
 * Vip User
 */
-router.get("/get-vip-info", (req, res) => {
-    if (req.headers['secret'] !== "kingpes") {
+router.get("/get-packages", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
         return;
     }
 
+    var p = {
+        "collection": "package",
+    }
+    firestore.gets(p, res)
 });
 
 /*
 * Vip User
 */
-router.post("/set-vip-info", (req, res) => {
-    if (req.headers['secret'] !== "kingpes") {
+router.post("/set-package", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
         return;
     }
 
+    /**
+    *  {
+        "_id" : ""
+        "description": 1,
+        "value": 30
+    *  }
+    */
+
+    var params = req.body;
+
+    var p = {
+        "collection": "package",
+        "document": params._id,
+        "field": {
+            "description": params.description,
+            "value": params.value
+        }
+    }
+
+    firestore.insert(p, res);
 
 });
 

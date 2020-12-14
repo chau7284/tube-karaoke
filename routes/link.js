@@ -4,6 +4,12 @@ const settings = require('../settings');
 const task = require('./task');
 const db = require('../mongo');
 
+/**
+*  
+* WORKER 
+* 
+*/
+
 const auth = async (req, res, next) => {
     try {
         var token = req.headers['token'];
@@ -22,6 +28,7 @@ const auth = async (req, res, next) => {
     }
 }
 
+//Add song
 router.post('/add', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -39,7 +46,7 @@ router.post('/add', async (req, res) => {
 });
 
 
-
+//Update song
 router.put('/update', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -50,7 +57,7 @@ router.put('/update', async (req, res) => {
     db.update(params, res);
 });
 
-//OK
+//Delete song
 router.delete('/delete', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -62,6 +69,7 @@ router.delete('/delete', async (req, res) => {
 });
 
 
+//Get song for extract link
 router.get('/find-task', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -71,6 +79,7 @@ router.get('/find-task', async (req, res) => {
     task.find(res);
 });
 
+//Return current page
 router.get('/current-task', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
