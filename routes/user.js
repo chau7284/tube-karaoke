@@ -245,7 +245,7 @@ router.delete('/deletes', auth, (req, res) => {
     }
 })
 
-router.get('/selects', auth, (req, res) => {
+router.get('/selects', (req, res) => {
     var page = req.query.page;
     var limit = req.query.limit;
     dbUser.find()
