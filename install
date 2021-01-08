@@ -20,6 +20,7 @@ git pull https://github.com/chau7284/tube-karaoke.git
 pm2 stop all
 pm2 start /home/karaoke/app.js
 
-ssh root@149.28.41.239
+ssh root@8.12.17.73
 
 Lcy0WF8cWAf6aPc95s7fdB0A4LKm2p6HSjBUTv9tSCR4JCeP
+20123704837_admin

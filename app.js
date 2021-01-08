@@ -135,6 +135,26 @@ app.get('/get', key, async (req, res) => {
     }
 });
 
+//Dzo Kara
+app.get('/get-farmer', async (req, res) => {
+    try {
+        var videoId = req.query.videoId;
+        console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
+        findExtractFarmer(videoId).then(streamData => {
+            if (streamData)
+                console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
+            else
+                console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
+            res.json(streamData);
+            res.end();
+            console.log("");
+        });
+    } catch (err) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
 function findExtractFarmer(videoId) {
     console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
     return new Promise((resolve) => {

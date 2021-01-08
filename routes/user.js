@@ -245,7 +245,7 @@ router.delete('/deletes', auth, (req, res) => {
     }
 })
 
-router.get('/selects', (req, res) => {
+router.get('/selects', auth, (req, res) => {
     var page = req.query.page;
     var limit = req.query.limit;
     dbUser.find()
@@ -331,6 +331,13 @@ router.put('/active', auth, (req, res) => {
 })
 
 /*
+* Apk
+*/
+router.get('/download/apk', (req, res) => {
+    res.download('./apk/dzokara.apk');
+});
+
+/*
 * App Config
 */
 router.get("/app-config", (req, res) => {
@@ -341,10 +348,12 @@ router.get("/app-config", (req, res) => {
     }
     res.json(
         {
-            "versionName": "1.0.0",
+            "versionName": "1.0.9",
             "secretKey": settings.SECRET,
             "privateKey": settings.KEY,
-            "nextVersion": ""
+            "nextVersion": "",
+            "date":"10/01/2021",
+            "function":"Sửa lỗi hệ thống"
         }
     );
 });
