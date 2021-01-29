@@ -55,6 +55,12 @@ app.use('/user', user);
 var tracking = require('./routes/tracking');
 app.use('/tracking', tracking);
 
+var code = require('./routes/key');
+app.use('/key', code);
+
+var video = require('./routes/video');
+app.use('/video', video);
+
 
 //////////////////////////////////////////////////
 var db = require('./mongo');

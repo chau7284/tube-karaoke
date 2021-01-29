@@ -1,0 +1,332 @@
+const express = require('express');
+const router = express.Router();
+const settings = require('../settings');
+const utils = require('../utils');
+const dbKey = require('../dbKey');
+const dbUser = require('../dbUser');
+const e = require('express');
+
+/**
+*  
+* ACTIVE CODE 
+* 
+*/
+
+const auth = async (req, res, next) => {
+    try {
+
+        var tk = req.headers['token'];
+        var id = req.headers['id'];
+
+        await dbUser.findOne(
+            { _id: id, token: tk }
+        ).exec((error, user) => {
+            if (!error) {
+                if (user == null) {
+                    res.json(settings.UN_TOKEN);
+                    res.end();
+                } else {
+                    checkExpired(user);
+                    next();
+                }
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+
+    } catch (error) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+}
+
+const checkExpired = async (user) => {
+    if (user.expired == undefined) user.expired = new Date();
+    var expired = user.expired.getTime();
+    var current = new Date().getTime();
+
+    if (current > expired) {
+        user.active = 0;
+        user.save();
+    }
+}
+
+router.post('/create', (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    /**
+    *  {
+        "type":"A|D",
+        "value":"30,60,90...",
+    *  }
+    */
+    var id = utils.createKey();
+    var params = req.body;
+    var key = {
+        "_id": params.type + id,
+        "type": params.type,
+        "value": params.value,
+        "status": 0,
+        "created": new Date()
+    }
+
+    try {
+        dbKey.create(
+            key
+            ,
+            (err, k) => {
+                if (!err) {
+                    res.json(k);
+                    res.end();
+                } else {
+                    res.json(settings.ERROR);
+                    res.end();
+                }
+            }
+        );
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
+//Update Parnert,...
+router.post('/update', (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    /**
+    *  {
+        "_id":"key",
+        "partner":"partner id"
+        .
+        .
+    *  }
+    */
+    var params = req.body;
+
+    try {
+        dbKey.updateOne(
+            {
+                _id: params._id
+            },
+            params
+        ).exec((error, k) => {
+            if (!error) {
+                res.json(k);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (ex) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
+//Get By Id
+router.get('/select', (req, res) => {
+    var id = req.query._id;
+    dbKey.findOne(
+        {
+            _id: id
+        }
+    ).exec((error, k) => {
+        if (!k) {
+            res.json(k);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+})
+
+//Get All
+router.get('/selects', auth, (req, res) => {
+    var page = req.query.page;
+    var limit = req.query.limit;
+    var tpe = req.query.type; //A|D
+    dbKey.find(
+        {
+            type: tpe
+        }
+    )
+        .limit(parseInt(limit))
+        .skip(parseInt(page))
+        .exec((error, ks) => {
+            if (!error) {
+                res.json(ks);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+})
+
+//Delete By Id
+router.delete('/delete', auth, (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    var id = req.query._id;
+
+    try {
+        dbKey.deleteOne(
+            {
+                _id: id
+            }
+        ).exec((err, result) => {
+            if (!err) {
+                res.json(result);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
+//Delete All
+router.delete('/deletes', auth, (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    try {
+        dbKey.deleteMany(
+            {
+                status: 0
+            }
+        ).exec((err, result) => {
+            if (!err) {
+                res.json(result);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
+//Active
+router.put('/active', auth, (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    /**
+    *  {
+        "_id" : "userId",
+        "key": "A...",
+        "phone": "0901234567"
+    *  }
+    */
+    var params = req.body;
+    try {
+        dbKey.findOne(
+            {
+                _id: params.key
+            }
+        ).exec((err, k) => {
+            if (!err && k) {
+                if (k.status === 0) {
+                    console.log("KEY_NONE");
+                    dbUser.findOne(
+                        {
+                            _id: params._id
+                        }
+                    ).exec((err, user) => {
+                        if (!err && user) {
+                            var newDate = new Date();
+                            if (user.expired == undefined) user.expired = newDate;
+                            var expired = user.expired.getTime();
+                            var current = newDate.getTime();
+            
+                            if (current > expired) {
+                                newDate.setDate(newDate.getDate() + Number(params.expired));
+                                user.expired = newDate;
+                            } else {
+                                var oldDate = user.expired;
+                                oldDate.setDate(oldDate.getDate() + Number(params.expired));
+                                user.expired = new Date(oldDate);
+                            }
+            
+                            user.active = 1;
+                            user.key = params.key;
+                            user.save();
+                            res.json(user);
+                            res.end();
+
+                            //Update key
+                            k.status = 1;
+                            k.updated = new Date();
+                            k.customer = params.customer;
+                            k.save();
+                        } else {
+                            res.json(settings.ERROR);
+                            res.end();
+                        }
+                    });
+                } else {
+                    console.log("KEY_USED");
+                    if(k.customer === params.customer){
+                        console.log("KEY_SAME_PHONE");
+                        dbUser.findOne(
+                            {
+                                key: params.key
+                            }
+                        ).exec((error, user) => {
+                            if (!error) {
+                                res.json(user);
+                                res.end();
+                            } else {
+                                res.json(settings.ERROR);
+                                res.end();
+                            }
+                        });
+                    }else{
+                        console.log("KEY_OTHER_PHONE");
+                        res.json("Mat ma khong dung");
+                        res.end();
+                    }
+                }
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
+
+
+
+module.exports = router;

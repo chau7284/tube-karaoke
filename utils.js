@@ -39,3 +39,13 @@ exports.createId = function () {
     if(m < 10) return y+'0'+m+ c;
     return y+m+ c;
 }
+
+exports.createKey = function () {
+    var key = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 9; i++)
+        key += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return key;
+}
