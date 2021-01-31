@@ -4,7 +4,6 @@ const settings = require('../settings');
 const utils = require('../utils');
 const dbKey = require('../dbKey');
 const dbUser = require('../dbUser');
-const e = require('express');
 
 /**
 *  
@@ -151,7 +150,7 @@ router.get('/select', (req, res) => {
 })
 
 //Get All
-router.get('/selects', auth, (req, res) => {
+router.get('/selects', (req, res) => {
     var page = req.query.page;
     var limit = req.query.limit;
     var tpe = req.query.type; //A|D

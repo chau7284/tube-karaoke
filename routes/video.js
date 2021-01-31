@@ -73,16 +73,18 @@ router.post('/add', (req, res) => {
             video
             ,
             (err, v) => {
-                if (!v) {
-                    res.json(user);
+                if (v !== undefined) {
+                    res.json(v);
                     res.end();
                 } else {
+                    console.log("A");
                     res.json(settings.ERROR);
                     res.end();
                 }
             }
         );
     } catch (e) {
+        console.log("B");
         res.json(settings.ERROR);
         res.end();
     }
@@ -157,7 +159,7 @@ router.put('/update', (req, res) => {
     }
 })
 
-router.get('/select', auth, (req, res) => {
+router.get('/find', auth, (req, res) => {
     var id = req.query._id;
     dbVideo.findOne(
         {
@@ -172,6 +174,23 @@ router.get('/select', auth, (req, res) => {
             res.end();
         }
     });
+})
+
+router.get('/selects', (req, res) => {
+    var page = req.query.page;
+    var limit = req.query.limit;
+    dbVideo.find()
+        .limit(parseInt(limit))
+        .skip(parseInt(page))
+        .exec((error, videos) => {
+            if (!error) {
+                res.json(videos);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
 })
 
 module.exports = router;
