@@ -1,6 +1,7 @@
 const settings = require('./settings');
 const utils = require('./utils.js');
 const dbSong = require('./dbSong');
+const dbVideo = require('./dbVideo');
 
 exports.select_token = function (id, tk, callback) {
     dbSong.findOne(
@@ -119,6 +120,19 @@ exports.find_song_by_id = function (videoId, callback) {
                 song.counter++;
                 song.save();
             }
+            callback(song);
+        } else {
+            callback(null);
+        }
+    });
+}
+
+//Dropbox
+exports.find_video_by_id = function (videoId, callback) {
+    dbVideo.findOne(
+        { _id: videoId }
+    ).exec((err, song) => {
+        if (!err) {
             callback(song);
         } else {
             callback(null);

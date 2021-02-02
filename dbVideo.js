@@ -6,7 +6,8 @@ const videoSchema = new mongoose.Schema(
         url: String,
         name: String,
         source: String,
-        duration:Number
+        duration:Number,
+        channel:String
     },
 );
  

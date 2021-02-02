@@ -341,7 +341,26 @@ router.get('/download/apk', (req, res) => {
 /*
 * App Config
 */
-router.post("/app-config", (req, res) => {
+router.get("/app-config", (req, res) => {
+    if (req.headers['secret'] !== "kingpes") {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    res.json(
+        {
+            "versionName": "1.0.9",
+            "secretKey": settings.SECRET,
+            "privateKey": settings.KEY,
+            "nextVersion": "",
+            "date":"10/01/2021",
+            "function":"Sửa lỗi hệ thống"
+        }
+    );
+});
+
+
+router.post("/add-configs", (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -364,7 +383,7 @@ router.post("/app-config", (req, res) => {
             config
             ,
             (err, c) => {
-                if (v !== undefined) {
+                if (c !== undefined) {
                     res.json(c);
                     res.end();
                 } else {
@@ -386,7 +405,7 @@ router.get("/app-config", (req, res) => {
         return;
     }
 
-    dbVideo.findOne(
+    dbConfig.findOne(
         {
             _id: "app-config"
         }

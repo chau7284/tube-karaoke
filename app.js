@@ -142,18 +142,32 @@ app.get('/get', key, async (req, res) => {
 });
 
 //Dzo Kara
-app.get('/get-farmer', async (req, res) => {
+app.get('/get-link', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
     try {
         var videoId = req.query.videoId;
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
-        findExtractFarmer(videoId).then(streamData => {
-            if (streamData)
-                console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-            else
-                console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-            res.json(streamData);
-            res.end();
-            console.log("");
+        await db.find_video_by_id(videoId, song => {
+            if (song != null) {
+                console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
+                res.json(song);
+                res.end();
+                console.log("");
+            } else {
+                findExtractFarmer(videoId).then(streamData => {
+                    if (streamData)
+                        console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
+                    else
+                        console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
+                    res.json(streamData);
+                    res.end();
+                    console.log("");
+                });
+            }
         });
     } catch (err) {
         res.json(settings.ERROR);

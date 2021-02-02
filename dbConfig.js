@@ -4,6 +4,7 @@ const configSchema = new mongoose.Schema(
     {
         _id: String,
         versionName: String,
+        newVersion:String,
         secretKey: String,
         privateKey: String,
         nextVersion: String,
