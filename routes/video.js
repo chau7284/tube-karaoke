@@ -65,7 +65,8 @@ router.post('/add', (req, res) => {
     var params = req.body;
     var video = {
         "_id": params._id,
-        "url": params.url
+        "url": params.url,
+        "source": params.source
     }
 
     try {
@@ -77,14 +78,12 @@ router.post('/add', (req, res) => {
                     res.json(v);
                     res.end();
                 } else {
-                    console.log("A");
                     res.json(settings.ERROR);
                     res.end();
                 }
             }
         );
     } catch (e) {
-        console.log("B");
         res.json(settings.ERROR);
         res.end();
     }
@@ -159,7 +158,7 @@ router.put('/update', (req, res) => {
     }
 })
 
-router.get('/find', auth, (req, res) => {
+router.get('/find', (req, res) => {
     var id = req.query._id;
     dbVideo.findOne(
         {

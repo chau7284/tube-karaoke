@@ -4,6 +4,7 @@ const settings = require('../settings');
 const firestore = require('../firestore');
 const utils = require('../utils');
 const dbUser = require('../dbUser');
+const dbConfig = require('../dbConfig');
 
 /**
 *  
@@ -340,22 +341,94 @@ router.get('/download/apk', (req, res) => {
 /*
 * App Config
 */
-router.get("/app-config", (req, res) => {
-    if (req.headers['secret'] !== "kingpes") {
+router.post("/app-config", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
         return;
     }
-    res.json(
+    var config = {
+        "_id": "app-config",
+        "versionName": "1.0.9",
+        "newVersion": "1.0.10",
+        "date": "10/01/2021",
+        "function": "Sửa lỗi hệ thống",
+        "secretKey": settings.SECRET,
+        "privateKey": settings.KEY,
+        "nextVersion": "",
+        "vip": 1 //1 : All Vip, 0: All Limit
+    }
+
+    try {
+        dbConfig.create(
+            config
+            ,
+            (err, c) => {
+                if (v !== undefined) {
+                    res.json(c);
+                    res.end();
+                } else {
+                    res.json(settings.ERROR);
+                    res.end();
+                }
+            }
+        );
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
+router.get("/app-config", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    dbVideo.findOne(
         {
-            "versionName": "1.0.9",
-            "secretKey": settings.SECRET,
-            "privateKey": settings.KEY,
-            "nextVersion": "",
-            "date":"10/01/2021",
-            "function":"Sửa lỗi hệ thống"
+            _id: "app-config"
         }
-    );
+    ).exec((error, c) => {
+        if (!error) {
+            res.json(c);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+});
+
+router.put("/update-config", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    var params = req.body;
+
+    try {
+        dbConfig.updateOne(
+            {
+                _id: "app-config"
+            },
+            params
+        ).exec((err, result) => {
+            if (!err) {
+                res.json(result);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
 });
 
 /*
@@ -398,8 +471,9 @@ router.post("/set-package", (req, res) => {
         "collection": "package",
         "document": params._id,
         "field": {
-            "description": params.description,
-            "value": params.value
+            "title": params.title,
+            "content": params.content,
+            "contact": params.contact
         }
     }
 

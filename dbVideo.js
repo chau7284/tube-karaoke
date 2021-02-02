@@ -4,7 +4,9 @@ const videoSchema = new mongoose.Schema(
     {
         _id: String,
         url: String,
-        name: String
+        name: String,
+        source: String,
+        duration:Number
     },
 );
  
