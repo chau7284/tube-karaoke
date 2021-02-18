@@ -29,7 +29,7 @@ const auth = async (req, res, next) => {
 }
 
 //Get song
-router.post('/get', async (req, res) => {
+router.get('/get', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();

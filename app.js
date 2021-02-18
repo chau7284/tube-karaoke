@@ -106,7 +106,7 @@ app.get('/get', key, async (req, res) => {
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
         await db.find_song_by_id(videoId, song => {
             if (song != null) {
-                if (song.video.lenght > 0) { //&& !utils.checkExpire(song.video)
+                if (song.video.length > 0 && !utils.checkExpire(song.video)) {
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
@@ -141,7 +141,7 @@ app.get('/get', key, async (req, res) => {
     }
 });
 
-//Dzo Kara
+//Dzo Kara Dropbox
 app.get('/get-link', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
