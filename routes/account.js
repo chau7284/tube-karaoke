@@ -169,4 +169,38 @@ router.put('/update', auth, (req, res) => {
     }
 })
 
+router.get('/info', auth, (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    /**
+    *  {
+        "_id":"0901810481",
+        "counter": 10
+    *  }
+    */
+    var k = req.query.key;
+
+    try {
+        dbAccount.findOne(
+            {
+                key: k
+            }
+        ).exec((err, acc) => {
+            if (!err && acc) {
+                res.json(acc);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
 module.exports = router;

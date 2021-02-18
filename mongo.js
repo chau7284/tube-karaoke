@@ -109,6 +109,21 @@ exports.update = function (params, res) {
     }
 }
 
+//Get Info Song
+exports.get_song_by_id = function (videoId, res) {
+    dbSong.findOne(
+        { _id: videoId }
+    ).exec((err, song) => {
+        if (!err) {
+            res.json(song);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+}
+
 //OK
 exports.find_song_by_id = function (videoId, callback) {
     dbSong.findOne(
@@ -133,7 +148,22 @@ exports.find_video_by_id = function (videoId, callback) {
         { _id: videoId }
     ).exec((err, song) => {
         if (!err) {
-            callback(song);
+            //find random relate song
+            var songs = [{
+                "id": song._id,
+                "name": "",
+                "uploader":"",
+                "thumb":"",
+                "duration":""
+            }];
+
+            var songStream = {
+                "id":song._id,
+                "songs":songs,
+                "video":song.url,
+                "audio":""
+            }
+            callback(songStream);
         } else {
             callback(null);
         }

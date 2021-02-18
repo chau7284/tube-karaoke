@@ -106,7 +106,7 @@ app.get('/get', key, async (req, res) => {
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
         await db.find_song_by_id(videoId, song => {
             if (song != null) {
-                if (song.video.lenght > 0 && !utils.checkExpire(song.video)) {
+                if (song.video.lenght > 0) { //&& !utils.checkExpire(song.video)
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
@@ -151,10 +151,10 @@ app.get('/get-link', async (req, res) => {
     try {
         var videoId = req.query.videoId;
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
-        await db.find_video_by_id(videoId, song => {
-            if (song != null) {
+        await db.find_video_by_id(videoId, songStream => {
+            if (songStream != null) {
                 console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                res.json(song);
+                res.json(songStream);
                 res.end();
                 console.log("");
             } else {

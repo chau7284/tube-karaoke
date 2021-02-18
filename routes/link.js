@@ -28,6 +28,23 @@ const auth = async (req, res, next) => {
     }
 }
 
+//Get song
+router.post('/get', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    /*
+    *{
+    * _id: videoId,
+    *}
+    */
+    var videoId = req.query.videoId;
+    db.get_song_by_id(videoId, res);
+});
+
 //Add song
 router.post('/add', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
