@@ -106,7 +106,7 @@ app.get('/get', key, async (req, res) => {
         console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
         await db.find_song_by_id(videoId, song => {
             if (song != null) {
-                if (song.video.length > 0 && !utils.checkExpire(song.video)) {
+                if (song.video.length > 0 && !utils.checkExpire(song.video[0])) {
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
