@@ -133,7 +133,7 @@ exports.check_exist_link = function (params, res) {
             _id: params._id
         }
     ).exec((err, song) => {
-        if (result) {
+        if (song) {
             //Exist
             console.log("<<<<<- UPDATE-LINK-EXIST ->>>>> " + params._id);
             update_link(song, params, res);
