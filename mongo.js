@@ -78,8 +78,8 @@ exports.delete = function (videoId, res) {
 }
 
 //OK
-exports.delete_all_type1 = function (videoId, res) {
-    dbUser.deleteMany(
+exports.delete_all_type1 = function (res) {
+    dbSong.deleteMany(
         {
             type: 1
         }
@@ -132,11 +132,11 @@ exports.check_exist_link = function (params, res) {
         {
             _id: params._id
         }
-    ).exec((err, result) => {
+    ).exec((err, song) => {
         if (result) {
             //Exist
             console.log("<<<<<- UPDATE-LINK-EXIST ->>>>> " + params._id);
-            update_link(params, res);
+            update_link(song, params, res);
         } else {
             //Not Exist
             console.log("*** UPDATE-LINK-NEW *** " + params._id);
@@ -153,7 +153,7 @@ function insert_link(params, res) {
             ,
             (err, song) => {
                 if (!err) {
-                    res.json(song);
+                    res.json(settings.SUCCESS);
                     res.end();
                 } else {
                     res.json(settings.ERROR);
@@ -167,7 +167,12 @@ function insert_link(params, res) {
     }
 }
 
-function update_link(params, res) {
+function update_link(song, params, res) {
+    if(song.type === undefined || song.type===0){
+        params.type = 0;
+    }else{
+        params.type= 1;
+    }
     try {
         dbSong.updateOne(
             {
