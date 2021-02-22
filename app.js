@@ -186,7 +186,6 @@ function findExtractFarmer(videoId) {
             for (var sock of connections) {
                 if (sock.free) {
                     socket = sock;
-                    console.log(socket.id);
                     break;
                 }
             }

@@ -83,7 +83,7 @@ router.put('/update-link', async (req, res) => {
         return;
     }
     var params = req.body;
-    db.update(params, res);
+    db.check_exist_link(params, res);
 });
 
 //Delete song
