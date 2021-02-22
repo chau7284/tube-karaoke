@@ -122,7 +122,7 @@ router.post('/signin', (req, res) => {
 
 });
 
-router.put('/update', auth, (req, res) => {
+router.put('/update', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -158,6 +158,30 @@ router.put('/update', auth, (req, res) => {
                         res.end();
                     }
                 });
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
+router.get('/selects', (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    try {
+        dbAccount.find(
+        ).exec((err, acc) => {
+            if (!err && acc) {
+                res.json(acc);
+                res.end();
             } else {
                 res.json(settings.ERROR);
                 res.end();

@@ -4,6 +4,7 @@ const songSchema = new mongoose.Schema(
     {
         _id: String, //videoId,
         counter: Number,
+        type:Number,
         video: [
             {
                 _id: String,

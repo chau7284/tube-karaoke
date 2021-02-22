@@ -78,6 +78,23 @@ exports.delete = function (videoId, res) {
 }
 
 //OK
+exports.delete_all_type1 = function (videoId, res) {
+    dbUser.deleteMany(
+        {
+            type: 1
+        }
+    ).exec((err, result) => {
+        if (!err) {
+            res.json(result);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+}
+
+//OK
 exports.update = function (params, res) {
     try{
         
@@ -104,6 +121,70 @@ exports.update = function (params, res) {
             });
 
     }catch (err) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+}
+
+//OK
+exports.check_exist_link = function (params, res) {
+    dbSong.findOne(
+        {
+            _id: params._id
+        }
+    ).exec((err, result) => {
+        if (result) {
+            //Exist
+            console.log("<<<<<- UPDATE-LINK-EXIST ->>>>> " + params._id);
+            update_link(params, res);
+        } else {
+            //Not Exist
+            console.log("*** UPDATE-LINK-NEW *** " + params._id);
+            insert_link(params, res);
+        }
+    });
+}
+
+function insert_link(params, res) {
+    try {
+        params.type = 1;
+        dbSong.create(
+            params
+            ,
+            (err, song) => {
+                if (!err) {
+                    res.json(song);
+                    res.end();
+                } else {
+                    res.json(settings.ERROR);
+                    res.end();
+                }
+            }
+        );
+    } catch (err) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+}
+
+function update_link(params, res) {
+    try {
+        dbSong.updateOne(
+            {
+                _id: params._id
+            },
+            params,
+            (err, l) => {
+                if (!err) {
+                    res.json(l);
+                    res.end();
+                } else {
+                    res.json(settings.ERROR);
+                    res.end();
+                }
+            }
+        );
+    } catch (err) {
         res.json(settings.ERROR);
         res.end();
     }
