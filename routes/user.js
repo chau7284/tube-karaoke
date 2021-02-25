@@ -398,8 +398,8 @@ router.post("/add-configs", (req, res) => {
     }
 });
 
-router.get("/app-config", (req, res) => {
-    if (req.headers['secret'] !== settings.SECRET) {
+router.get("/app-setting", (req, res) => {
+    if (req.headers['secret'] !== 'kingpes') {
         res.json(settings.UN_AUTH);
         res.end();
         return;

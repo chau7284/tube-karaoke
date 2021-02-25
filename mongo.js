@@ -168,7 +168,7 @@ function insert_link(params, res) {
 }
 
 function update_link(song, params, res) {
-    if(song.type === undefined || song.type===0){
+    if(song.type === undefined || song.type === 0){
         params.type = 0;
     }else{
         params.type= 1;
