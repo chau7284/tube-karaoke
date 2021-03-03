@@ -6,7 +6,7 @@ const keySchema = new mongoose.Schema(
         type: String, //A:Remove Ads, D:Dropbox Link *
         value: Number, //30,60,90,120.... *
         status: Number, //0:None, 1:Used *
-        customer: String, //Phone Number
+        phone: String, //Phone Number
         partner: String, //Id Partner,
         created: Date,
         updated: Date

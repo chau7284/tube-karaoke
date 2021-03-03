@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
         token: String,
         device: String,
         active: Number,
+        key: String,
         created: Date,
         updated: Date,
         expired: Date

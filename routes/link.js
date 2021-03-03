@@ -129,6 +129,16 @@ router.get('/current-task', async (req, res) => {
     task.current(res);
 });
 
+//Clear task
+router.get('/clear-task', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    task.clear(res);
+});
+
 //Update Extract Error
 router.post('/update-error', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {

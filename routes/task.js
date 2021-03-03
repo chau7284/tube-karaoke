@@ -16,6 +16,13 @@ exports.find = function (res) {
     find_song(res);
 }
 
+exports.clear = function (res) {
+    SONGS = [];
+    page = 0;
+    res.json(settings.SUCCESS);
+    res.end();
+}
+
 
 let SONGS = [];
 const LIMIT = 100;

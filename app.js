@@ -141,6 +141,24 @@ app.get('/get', key, async (req, res) => {
     }
 });
 
+app.get('/get-link-farmer', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    var videoId = req.query.videoId;
+    findExtractFarmer(videoId).then(streamData => {
+        if (streamData)
+            console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
+        else
+            console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
+        res.json(streamData);
+        res.end();
+        console.log("");
+    });
+});
+
 //Dzo Kara Dropbox
 app.get('/get-link', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {

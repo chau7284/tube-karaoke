@@ -246,7 +246,7 @@ router.delete('/deletes', auth, (req, res) => {
     }
 })
 
-router.get('/selects', auth, (req, res) => {
+router.get('/selects', (req, res) => {
     var page = req.query.page;
     var limit = req.query.limit;
     dbUser.find()
@@ -280,6 +280,7 @@ router.get('/select', auth, (req, res) => {
     });
 })
 
+//Depcrated
 router.put('/active', auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -341,6 +342,7 @@ router.get('/download/apk', (req, res) => {
 /*
 * App Config
 */
+//Deprecated
 router.get("/app-config", (req, res) => {
     if (req.headers['secret'] !== "kingpes") {
         res.json(settings.UN_AUTH);

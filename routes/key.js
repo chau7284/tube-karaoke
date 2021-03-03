@@ -60,7 +60,7 @@ router.post('/create', (req, res) => {
     /**
     *  {
         "type":"A|D",
-        "value":"30,60,90...",
+        "value":"30,60,90...", //day
     *  }
     */
     var id = utils.createKey();
@@ -94,7 +94,7 @@ router.post('/create', (req, res) => {
 });
 
 //Update Parnert,...
-router.post('/update', (req, res) => {
+router.put('/update', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
@@ -132,6 +132,29 @@ router.post('/update', (req, res) => {
 });
 
 //Get By Id
+router.get('/select-by-partner', (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    var id = req.query.partner;
+    dbKey.find(
+        {
+            partner: id
+        }
+    ).exec((error, k) => {
+        if (!error) {
+            res.json(k);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+})
+
+//Get By Id
 router.get('/select', (req, res) => {
     var id = req.query._id;
     dbKey.findOne(
@@ -139,7 +162,7 @@ router.get('/select', (req, res) => {
             _id: id
         }
     ).exec((error, k) => {
-        if (!k) {
+        if (!error) {
             res.json(k);
             res.end();
         } else {
@@ -151,6 +174,11 @@ router.get('/select', (req, res) => {
 
 //Get All
 router.get('/selects', (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
     var page = req.query.page;
     var limit = req.query.limit;
     var tpe = req.query.type; //A|D
@@ -254,7 +282,7 @@ router.put('/active', auth, (req, res) => {
         ).exec((err, k) => {
             if (!err && k) {
                 if (k.status === 0) {
-                    console.log("KEY_NONE");
+                    console.log("KEY_AVAILABLE");
                     dbUser.findOne(
                         {
                             _id: params._id
@@ -267,24 +295,24 @@ router.put('/active', auth, (req, res) => {
                             var current = newDate.getTime();
             
                             if (current > expired) {
-                                newDate.setDate(newDate.getDate() + Number(params.expired));
+                                newDate.setDate(newDate.getDate() + Number(k.value));
                                 user.expired = newDate;
                             } else {
                                 var oldDate = user.expired;
-                                oldDate.setDate(oldDate.getDate() + Number(params.expired));
-                                user.expired = new Date(oldDate);
+                                oldDate.setDate(oldDate.getDate() + Number(k.value));
+                                user.expired = oldDate;
                             }
-            
                             user.active = 1;
                             user.key = params.key;
                             user.save();
                             res.json(user);
                             res.end();
+                            
 
                             //Update key
                             k.status = 1;
                             k.updated = new Date();
-                            k.customer = params.customer;
+                            k.phone = params.phone;
                             k.save();
                         } else {
                             res.json(settings.ERROR);
@@ -293,7 +321,7 @@ router.put('/active', auth, (req, res) => {
                     });
                 } else {
                     console.log("KEY_USED");
-                    if(k.customer === params.customer){
+                    if(k.phone === params.phone){
                         console.log("KEY_SAME_PHONE");
                         dbUser.findOne(
                             {
@@ -310,7 +338,7 @@ router.put('/active', auth, (req, res) => {
                         });
                     }else{
                         console.log("KEY_OTHER_PHONE");
-                        res.json("Mat ma khong dung");
+                        res.json(settings.KEY_INCORRECT);
                         res.end();
                     }
                 }

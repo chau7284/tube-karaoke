@@ -11,6 +11,7 @@ module.exports = Object.freeze({
     EXIST: { "status": "Exist" },
     KEY_INVALID: { "status": "Api Key Invalid"},
     KEY_LIMITED: { "status": "Api Key Limited"},
+    KEY_INCORRECT: { "status": "Security Code Incorrect"},
     SUCCESSFUL: "successful",
     URL_FCM: 'https://kingpes-db.firebaseapp.com/'
 });
