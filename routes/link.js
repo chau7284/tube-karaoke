@@ -165,4 +165,32 @@ router.post('/update-error', async (req, res) => {
     firestore.insert_silent(p);
 });
 
+//Update Extract Error
+router.post('/update-ban', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    var params = req.body;
+
+    var current = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+    var p = {
+        "collection": "BAN-IP",
+        "document": params.deviceName + "|" + params.videoId + "|"+ new Date().toISOString(),
+        "field": {
+            "deviceName": params.deviceName,
+            "videoId": params.videoId,
+            "battery":params.battery,
+            "ip": ip,
+            "time": current
+        }
+    }
+
+    firestore.insert_silent(p);
+});
+
 module.exports = router;

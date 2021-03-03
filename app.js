@@ -214,10 +214,12 @@ function findExtractFarmer(videoId) {
                     resolve(null);
                 }, TIMEOUT);
                 socket.free = false;
+                connections.splice(connections.indexOf(socket), 1); //remove socket
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
                     clearTimeout(timeout);
                     socket.free = true;
+                    connections.push(socket); //add socket
                     resolve(streamData);
                 });
             } else {
