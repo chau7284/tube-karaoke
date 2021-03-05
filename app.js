@@ -10,6 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const settings = require('./settings');
 const utils = require('./utils');
 let connections = [];
+let farmers = [];
 const TIMEOUT = 10000;
 
 server.listen(process.env.PORT || 3000);
@@ -40,7 +41,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/get-farmer", (req, res) => {
-    res.send(String(connections.length));
+    res.send(String(farmers.length)+"/"+String(connections.length));
 });
 
 var link = require('./routes/link');
@@ -113,7 +114,7 @@ app.get('/get', key, async (req, res) => {
                     console.log("");
                 } else {
                     console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
-                    findExtractFarmer(videoId).then(streamData => {
+                    findFarmer(videoId).then(streamData => {
                         if (streamData)
                             console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
                         else
@@ -124,7 +125,7 @@ app.get('/get', key, async (req, res) => {
                     });
                 }
             } else {
-                findExtractFarmer(videoId).then(streamData => {
+                findFarmer(videoId).then(streamData => {
                     if (streamData)
                         console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
                     else
@@ -148,7 +149,7 @@ app.get('/get-link-farmer', async (req, res) => {
         return;
     }
     var videoId = req.query.videoId;
-    findExtractFarmer(videoId).then(streamData => {
+    findFarmer(videoId).then(streamData => {
         if (streamData)
             console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
         else
@@ -220,6 +221,34 @@ function findExtractFarmer(videoId) {
                     clearTimeout(timeout);
                     socket.free = true;
                     connections.push(socket); //add socket
+                    resolve(streamData);
+                });
+            } else {
+                resolve(null);
+            }
+        }
+    })
+}
+
+function findFarmer(videoId) {
+    console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
+    return new Promise((resolve) => {
+        if(farmers.length <= 0){
+            farmers = connections.slice(); //copy
+        }
+        if (farmers.length <= 0) {
+            resolve(null);
+        } else {
+            //Framer
+            var socket = farmers[0];
+            if (socket != null) {
+                var timeout = setTimeout(() => {
+                    resolve(null);
+                }, TIMEOUT);
+                farmers.shift();
+                socket.emit("EXTRACT", videoId);
+                socket.on(videoId, streamData => {
+                    clearTimeout(timeout);
                     resolve(streamData);
                 });
             } else {
