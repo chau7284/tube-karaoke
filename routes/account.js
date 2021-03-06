@@ -227,4 +227,33 @@ router.get('/info', auth, (req, res) => {
     }
 })
 
+router.get('/key-info', (req, res) => {
+    /**
+    *  {
+        "_id":"0901810481",
+        "counter": 10
+    *  }
+    */
+    var k = req.query.key;
+
+    try {
+        dbAccount.findOne(
+            {
+                key: k
+            }
+        ).exec((err, acc) => {
+            if (!err && acc) {
+                res.json({"counter":acc.counter});
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
+    } catch (e) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+})
+
 module.exports = router;

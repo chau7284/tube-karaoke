@@ -468,6 +468,19 @@ router.get("/get-packages", (req, res) => {
     firestore.gets(p, res)
 });
 
+router.get("/get-recommend", (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    var p = {
+        "collection": "ytlist",
+    }
+    firestore.gets(p, res)
+});
+
 /*
 * Vip User
 */
