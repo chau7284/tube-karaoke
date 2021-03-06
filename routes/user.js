@@ -336,7 +336,7 @@ router.put('/active', auth, (req, res) => {
 * Apk
 */
 router.get('/download/apk', (req, res) => {
-    res.download('./apk/dzokara.apk');
+    res.download('./apk/dzokara1012.apk');
 });
 
 /*
