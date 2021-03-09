@@ -153,9 +153,10 @@ router.post('/update-error', async (req, res) => {
     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     var p = {
-        "collection": params.deviceName,
-        "document": params.videoId + "|"+ new Date().toISOString(),
+        "collection": "DZOLINK",
+        "document": params.deviceName + "|"+ new Date().toISOString(),
         "field": {
+            "videoId": params.videoId,
             "battery":params.battery,
             "ip": ip,
             "time": current

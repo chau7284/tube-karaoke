@@ -142,6 +142,7 @@ app.get('/get', key, async (req, res) => {
     }
 });
 
+//Test Heroku
 app.get('/get-link-farmer', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);

@@ -80,4 +80,10 @@ router.get("/selects", (req, res)=>{
     firestore.paging(p, res);
 });
 
+router.get("/my-ip", (req, res)=>{
+    var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    res.send(ip);
+    res.end();
+});
+
 module.exports = router;
