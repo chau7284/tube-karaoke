@@ -180,8 +180,8 @@ router.post('/update-ban', async (req, res) => {
     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
     var p = {
-        "collection": "BAN-IP",
-        "document": params.deviceName + "|" + params.videoId + "|"+ new Date().toISOString(),
+        "collection": "BAN",
+        "document": params.deviceName + "|" + new Date().toISOString(),
         "field": {
             "deviceName": params.deviceName,
             "videoId": params.videoId,
@@ -209,7 +209,7 @@ router.post('/update-sleeping', async (req, res) => {
 
     var p = {
         "collection": "SLEEPING",
-        "document": params.deviceName + "|" + "|"+ new Date().toISOString(),
+        "document": params.deviceName + "|" + new Date().toISOString(),
         "field": {
             "deviceName": params.deviceName,
             "battery":params.battery,

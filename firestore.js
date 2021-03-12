@@ -221,3 +221,25 @@ exports.paging = function (params, res) {
     }
 }
 
+exports.updatenull = function(videoId, key, error, reason){
+
+    var current = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    var params = {
+        "collection": "NULL",
+        "document": key + "___"+ new Date().toISOString(),
+        "field": {
+            "videoId": videoId,
+            "key":key,
+            "error": error,
+            "reason": reason,
+            "time": current
+        }
+    }
+
+    params.field.time = admin.firestore.FieldValue.serverTimestamp();
+    docRef = db.collection(params.collection).doc(params.document);
+    docRef.set(
+        params.field
+    );
+}
+

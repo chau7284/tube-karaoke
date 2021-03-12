@@ -9,6 +9,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 //const seconds = '*/1 * * * * *';
 const settings = require('./settings');
 const utils = require('./utils');
+const firestore = require('./firestore');
 let connections = [];
 let farmers = [];
 const TIMEOUT = 10000;
@@ -114,7 +115,7 @@ app.get('/get', key, async (req, res) => {
                     console.log("");
                 } else {
                     console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
-                    findFarmer(videoId).then(streamData => {
+                    findFarmer(videoId, req.query.key).then(streamData => {
                         if (streamData)
                             console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
                         else
@@ -125,7 +126,7 @@ app.get('/get', key, async (req, res) => {
                     });
                 }
             } else {
-                findFarmer(videoId).then(streamData => {
+                findFarmer(videoId, req.query.key).then(streamData => {
                     if (streamData)
                         console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
                     else
@@ -144,13 +145,14 @@ app.get('/get', key, async (req, res) => {
 
 //Test Heroku
 app.get('/get-link-farmer', async (req, res) => {
-    if (req.headers['secret'] !== settings.SECRET) {
-        res.json(settings.UN_AUTH);
-        res.end();
-        return;
-    }
+    // if (req.headers['secret'] !== settings.SECRET) {
+    //     res.json(settings.UN_AUTH);
+    //     res.end();
+    //     return;
+    // }
+
     var videoId = req.query.videoId;
-    findFarmer(videoId).then(streamData => {
+    findFarmer(videoId, "TEST").then(streamData => {
         if (streamData)
             console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
         else
@@ -231,7 +233,7 @@ function findExtractFarmer(videoId) {
     })
 }
 
-function findFarmer(videoId) {
+function findFarmer(videoId, key) {
     console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
     return new Promise((resolve) => {
         if(farmers.length <= 0){
@@ -239,21 +241,30 @@ function findFarmer(videoId) {
         }
         if (farmers.length <= 0) {
             resolve(null);
+            //Log
+            firestore.updatenull(videoId, key, 1,"famer: 0");
         } else {
             //Framer
             var socket = farmers[0];
             if (socket != null) {
                 var timeout = setTimeout(() => {
                     resolve(null);
+                    //Log
+                    firestore.updatenull(videoId, key, 2,"famer: timeout 10s");
                 }, TIMEOUT);
                 farmers.shift();
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
                     clearTimeout(timeout);
                     resolve(streamData);
+                    //Log
+                    if (!streamData)
+                        firestore.updatenull(videoId, key, 3,"parse: null");
                 });
             } else {
                 resolve(null);
+                //Log
+                firestore.updatenull(videoId, key, 4,"socket: null");
             }
         }
     })
