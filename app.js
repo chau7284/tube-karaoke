@@ -145,11 +145,11 @@ app.get('/get', key, async (req, res) => {
 
 //Test Heroku
 app.get('/get-link-farmer', async (req, res) => {
-    // if (req.headers['secret'] !== settings.SECRET) {
-    //     res.json(settings.UN_AUTH);
-    //     res.end();
-    //     return;
-    // }
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
 
     var videoId = req.query.videoId;
     findFarmer(videoId, "TEST").then(streamData => {

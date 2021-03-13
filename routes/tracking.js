@@ -74,16 +74,41 @@ router.get("/selects", (req, res)=>{
         }
     }
 
-
-    console.log(JSON.stringify(p))
-
     firestore.paging(p, res);
 });
 
-router.get("/my-ip", (req, res)=>{
+router.post("/my-ip", (req, res)=>{
+
+    var params = req.body;
+
+    var current = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
     var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     res.send(ip);
     res.end();
+
+    var p = {
+        "collection": "RUNNING",
+        "document": params.deviceName + "|"+ new Date().toISOString(),
+        "field": {
+            "deviceName": params.deviceName,
+            "mode": params.mode,
+            "battery": params.battery,
+            "time": current,
+            "ip": ip,
+            "ok": params.ok,
+            "fail":params.fail,
+            "ban":params.ban
+        }
+    }
+
+    firestore.insert(p, res);
+});
+
+router.get("/action", (req, res)=>{
+    var p = {
+        "collection": "ACTION"
+    }
+    firestore.gets(p, res)
 });
 
 module.exports = router;
