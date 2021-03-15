@@ -46,6 +46,17 @@ router.get('/get', async (req, res) => {
     db.get_song_by_id(videoId, res);
 });
 
+//Get All song
+router.get('/get-all', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    db.get_all_song(res);
+});
+
 //Add song
 router.post('/add', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
@@ -61,6 +72,18 @@ router.post('/add', async (req, res) => {
     */
     var params = req.body;
     db.check_exist(params, res);
+});
+
+//Add many document
+router.post('/add-many-document', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+
+    var params = req.body;
+    db.insert_many_document(params, res);
 });
 
 
@@ -97,7 +120,7 @@ router.delete('/delete', async (req, res) => {
     db.delete(params._id, res);
 });
 
-//Delete song
+//Delete song type 1
 router.delete('/delete-type1', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -106,6 +129,16 @@ router.delete('/delete-type1', async (req, res) => {
     }
 
     db.delete_all_type1(res);
+});
+
+//Delete song
+router.delete('/delete-all-document', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    db.delete_all_document(res);
 });
 
 

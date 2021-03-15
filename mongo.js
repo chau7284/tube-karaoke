@@ -210,6 +210,20 @@ exports.get_song_by_id = function (videoId, res) {
     });
 }
 
+//Get All Song
+exports.get_all_song = function (res) {
+    dbSong.find()
+    .exec((err, song) => {
+        if (!err) {
+            res.json(song);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+}
+
 //OK
 exports.find_song_by_id = function (videoId, callback) {
     dbSong.findOne(
@@ -225,6 +239,32 @@ exports.find_song_by_id = function (videoId, callback) {
         } else {
             callback(null);
         }
+    });
+}
+
+//Delete all document
+exports.delete_all_document = function (res) {
+    dbSong.deleteMany()
+    .exec((err, song) => {
+        if (!err) {
+            res.json(song);
+            res.end();
+        } else {
+            res.json(settings.ERROR);
+            res.end();
+        }
+    });
+}
+
+//Insert many document
+exports.insert_many_document = async function (params, res) {
+    dbSong.insertMany(params)
+    .then((doc)=>{
+        res.json(doc);
+        res.end();
+    }).catch((err)=>{
+        res.json(err);
+        res.end();
     });
 }
 

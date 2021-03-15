@@ -10,6 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const settings = require('./settings');
 const utils = require('./utils');
 const firestore = require('./firestore');
+//const axios = require('./axios');
 let connections = [];
 let farmers = [];
 const TIMEOUT = 10000;
@@ -42,7 +43,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/get-farmer", (req, res) => {
-    res.send(String(farmers.length)+"/"+String(connections.length));
+    res.send(String(farmers.length) + "/" + String(connections.length));
 });
 
 var link = require('./routes/link');
@@ -236,13 +237,13 @@ function findExtractFarmer(videoId) {
 function findFarmer(videoId, key) {
     console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
     return new Promise((resolve) => {
-        if(farmers.length <= 0){
+        if (farmers.length <= 0) {
             farmers = connections.slice(); //copy
         }
         if (farmers.length <= 0) {
             resolve(null);
             //Log
-            firestore.updatenull(videoId, key, 1,"famer: 0");
+            firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
         } else {
             //Framer
             var socket = farmers[0];
@@ -250,7 +251,7 @@ function findFarmer(videoId, key) {
                 var timeout = setTimeout(() => {
                     resolve(null);
                     //Log
-                    firestore.updatenull(videoId, key, 2,"famer: timeout 10s");
+                    firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
                 }, TIMEOUT);
                 farmers.shift();
                 socket.emit("EXTRACT", videoId);
@@ -259,12 +260,12 @@ function findFarmer(videoId, key) {
                     resolve(streamData);
                     //Log
                     if (!streamData)
-                        firestore.updatenull(videoId, key, 3,"parse: null");
+                        firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
                 });
             } else {
                 resolve(null);
                 //Log
-                firestore.updatenull(videoId, key, 4,"socket: null");
+                firestore.updatenull("unknown",videoId, key, 4, "socket: null");
             }
         }
     })
@@ -281,9 +282,18 @@ io.sockets.on('connection', (socket) => {
         connections.splice(connections.indexOf(socket), 1);
         console.log('<Disconnect>: -> %s sockets connected', connections.length);
     });
+
+    socket.on('CONNECTED', (deviceName) => {
+        socket.deviceName = deviceName;
+        socket.emit('CONNECTED', "Connected");
+    });
+
+    socket.on('PING', () => {
+        socket.emit('PING', "OK -> Farmer: " + connections.length + " -> Position: " + connections.indexOf(socket));
+    });
 })
 
 //Schedule
-//schedule.scheduleJob(seconds, function (time) {
-    //connections[0].emit("timestamp", 0);
+//schedule.scheduleJob({ hour: 1, minute: 15 }, function (time) {
+//    axios.getListVersion();
 //});

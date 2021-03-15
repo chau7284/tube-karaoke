@@ -221,13 +221,14 @@ exports.paging = function (params, res) {
     }
 }
 
-exports.updatenull = function(videoId, key, error, reason){
+exports.updatenull = function(deviceName, videoId, key, error, reason){
 
     var current = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
     var params = {
         "collection": "NULL",
         "document": key + "___"+ new Date().toISOString(),
         "field": {
+            "deviceName": deviceName,
             "videoId": videoId,
             "key":key,
             "error": error,
@@ -241,5 +242,47 @@ exports.updatenull = function(videoId, key, error, reason){
     docRef.set(
         params.field
     );
+}
+
+exports.setSchedule = function(version){
+    console.log("Set-Schedule");
+    var current = new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    var params = {
+        "collection": "SCHEDULE",
+        "document": version,
+        "field": {
+            "ts": current
+        }
+    }
+
+    params.field.time = admin.firestore.FieldValue.serverTimestamp();
+    docRef = db.collection(params.collection).doc(params.document);
+    docRef.set(
+        params.field
+    );
+}
+
+exports.getSChedule = async function(version){
+    console.log("Get-Schedule");
+    var params = {
+        "collection": "SCHEDULE",
+        "document": version,
+    }
+    return new Promise((resolve) => {
+        let docRef = db.collection(params.collection).doc(params.document);
+        docRef.get()
+            .then(doc => {
+                if (!doc.exists) {
+                    console.log("OTHER");
+                    resolve(true);
+                } else {
+                    console.log("SAME");
+                    resolve(false);
+                }
+            })
+            .catch(err => {
+                resolve(false);
+            });
+    });
 }
 
