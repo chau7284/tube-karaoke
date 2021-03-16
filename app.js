@@ -68,6 +68,7 @@ app.use('/video', video);
 //////////////////////////////////////////////////
 var db = require('./mongo');
 var dbAccount = require('./dbAccount');
+const { Socket } = require('dgram');
 const key = async (req, res, next) => {
     try {
         var apiKey = req.query.key;
@@ -280,16 +281,22 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         connections.splice(connections.indexOf(socket), 1);
+        farmers=[];
         console.log('<Disconnect>: -> %s sockets connected', connections.length);
     });
 
     socket.on('CONNECTED', (deviceName) => {
         socket.deviceName = deviceName;
-        socket.emit('CONNECTED', "Connected");
+        socket.emit('CONNECTED', "Connected...");
     });
 
     socket.on('PING', () => {
-        socket.emit('PING', "OK -> Farmer: " + connections.length + " -> Position: " + connections.indexOf(socket));
+        var name='';
+        for (var sock of connections) {
+            name += sock.name + ","
+        }
+        name = name.substring(0, name.length - 1);
+        socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + connections.indexOf(socket)+1);
     });
 })
 
