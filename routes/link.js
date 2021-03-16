@@ -138,6 +138,7 @@ router.delete('/delete-all-document', async (req, res) => {
         res.end();
         return;
     }
+   
     db.delete_all_document(res);
 });
 

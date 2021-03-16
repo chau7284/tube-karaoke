@@ -16,6 +16,12 @@ const songSchema = new mongoose.Schema(
                 _id: String,
                 url: String
             }
+        ],
+        mix:[
+            {
+                _id: String,
+                url: String
+            }
         ]
     },
 );

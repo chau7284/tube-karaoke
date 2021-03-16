@@ -260,7 +260,7 @@ function findFarmer(videoId, key) {
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
-                    if (!streamData)
+                    if (streamData !== null)
                         firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
                 });
             } else {
@@ -296,7 +296,7 @@ io.sockets.on('connection', (socket) => {
             name += sock.deviceName + ","
         }
         name = name.substring(0, name.length - 1);
-        socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + connections.indexOf(socket)+1);
+        socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + (connections.indexOf(socket)+1));
     });
 })
 

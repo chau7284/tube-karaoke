@@ -231,10 +231,10 @@ exports.find_song_by_id = function (videoId, callback) {
     ).exec((err, song) => {
         if (!err) {
             //Counter
-            //if (song != null) {
-            //    song.counter++;
-            //    song.save();
-            //}
+            if (song != null) {
+               song.counter++;
+               song.save();
+            }
             callback(song);
         } else {
             callback(null);
@@ -247,10 +247,10 @@ exports.delete_all_document = function (res) {
     dbSong.deleteMany()
     .exec((err, song) => {
         if (!err) {
-            res.json(song);
+            res.send(settings.SUCCESS);
             res.end();
         } else {
-            res.json(settings.ERROR);
+            res.send(settings.ERR);
             res.end();
         }
     });
@@ -260,10 +260,10 @@ exports.delete_all_document = function (res) {
 exports.insert_many_document = async function (params, res) {
     dbSong.insertMany(params)
     .then((doc)=>{
-        res.json(doc);
+        res.send(settings.SUCCESS);
         res.end();
     }).catch((err)=>{
-        res.json(err);
+        res.send(settings.ERR);
         res.end();
     });
 }
