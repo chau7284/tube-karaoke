@@ -231,10 +231,10 @@ exports.find_song_by_id = function (videoId, callback) {
     ).exec((err, song) => {
         if (!err) {
             //Counter
-            if (song != null) {
-                song.counter++;
-                song.save();
-            }
+            //if (song != null) {
+            //    song.counter++;
+            //    song.save();
+            //}
             callback(song);
         } else {
             callback(null);

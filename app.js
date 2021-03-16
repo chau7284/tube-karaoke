@@ -293,7 +293,7 @@ io.sockets.on('connection', (socket) => {
     socket.on('PING', () => {
         var name='';
         for (var sock of connections) {
-            name += sock.name + ","
+            name += sock.deviceName + ","
         }
         name = name.substring(0, name.length - 1);
         socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + connections.indexOf(socket)+1);
