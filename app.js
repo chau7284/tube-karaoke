@@ -244,7 +244,7 @@ function findFarmer(videoId, key) {
         if (farmers.length <= 0) {
             resolve(null);
             //Log
-            firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
+            //firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
         } else {
             //Framer
             var socket = farmers[0];
@@ -252,7 +252,7 @@ function findFarmer(videoId, key) {
                 var timeout = setTimeout(() => {
                     resolve(null);
                     //Log
-                    firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
+                    //firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
                 }, TIMEOUT);
                 farmers.shift();
                 socket.emit("EXTRACT", videoId);
@@ -260,13 +260,13 @@ function findFarmer(videoId, key) {
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
-                    if (streamData !== null)
-                        firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
+                    //if (streamData !== null)
+                        //firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
                 });
             } else {
                 resolve(null);
                 //Log
-                firestore.updatenull("unknown",videoId, key, 4, "socket: null");
+                //firestore.updatenull("unknown",videoId, key, 4, "socket: null");
             }
         }
     })
