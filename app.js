@@ -118,7 +118,12 @@ app.get('/get', key, async (req, res) => {
                     res.json(song);
                     res.end();
                     console.log("");
-                } else {
+                }else if(song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)){
+                    console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
+                    res.json(song);
+                    res.end();
+                    console.log("");
+                }else {
                     console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
                     findFarmer(videoId, req.query.key).then(streamData => {
                         if (streamData)
