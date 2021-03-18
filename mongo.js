@@ -95,15 +95,29 @@ exports.delete_all_type1 = function (res) {
 }
 
 //OK
+exports.count = function (res) {
+    dbSong.countDocuments(
+    ).exec((err, result) => {
+        if (result) {
+            res.json(result);
+            res.end();
+        } else {
+            res.send(settings.ERR);
+            res.end();
+        }
+    });
+}
+
+//OK
 exports.update = function (params, res) {
-    try{
-        
+    try {
+
         dbSong.updateOne(
             {
                 _id: params._id
             },
             {
-                $set: { 
+                $set: {
                     video: params.video,
                     audio: params.audio
                 }
@@ -120,7 +134,7 @@ exports.update = function (params, res) {
                 }
             });
 
-    }catch (err) {
+    } catch (err) {
         res.json(settings.ERROR);
         res.end();
     }
@@ -168,10 +182,10 @@ function insert_link(params, res) {
 }
 
 function update_link(song, params, res) {
-    if(song.type === undefined || song.type === 0){
+    if (song.type === undefined || song.type === 0) {
         params.type = 0;
-    }else{
-        params.type= 1;
+    } else {
+        params.type = 1;
     }
     try {
         dbSong.updateOne(
@@ -213,15 +227,15 @@ exports.get_song_by_id = function (videoId, res) {
 //Get All Song
 exports.get_all_song = function (res) {
     dbSong.find()
-    .exec((err, song) => {
-        if (!err) {
-            res.json(song);
-            res.end();
-        } else {
-            res.json(settings.ERROR);
-            res.end();
-        }
-    });
+        .exec((err, song) => {
+            if (!err) {
+                res.json(song);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
 }
 
 //OK
@@ -232,8 +246,9 @@ exports.find_song_by_id = function (videoId, callback) {
         if (!err) {
             //Counter
             if (song != null) {
-               song.counter++;
-               song.save();
+                if (song.counter === undefined) song.counter = 0;
+                song.counter++;
+                song.save();
             }
             callback(song);
         } else {
@@ -245,29 +260,30 @@ exports.find_song_by_id = function (videoId, callback) {
 //Delete all document
 exports.delete_all_document = function (res) {
     dbSong.deleteMany()
-    .exec((err, song) => {
-        if (!err) {
-            res.send(settings.SUCCESS);
-            res.end();
-        } else {
-            res.send(settings.ERR);
-            res.end();
-        }
-    });
+        .exec((err, rsl) => {
+            if (!err) {
+                res.json(rsl);
+                res.end();
+            } else {
+                res.json(settings.ERROR);
+                res.end();
+            }
+        });
 }
 
 //Insert many document
 exports.insert_many_document = async function (params, res) {
     dbSong.insertMany(params)
-    .then((doc)=>{
-        res.send(settings.SUCCESS);
-        res.end();
-    }).catch((err)=>{
-        console.log(err);
-        res.send(settings.ERR);
-        res.end();
-    });
+        .then((doc) => {
+            res.send(settings.SUCCESS);
+            res.end();
+        }).catch((err) => {
+            res.send(settings.ERR);
+            res.end();
+        });
 }
+
+
 
 //Dropbox
 exports.find_video_by_id = function (videoId, callback) {
@@ -279,16 +295,16 @@ exports.find_video_by_id = function (videoId, callback) {
             var songs = [{
                 "id": song._id,
                 "name": "",
-                "uploader":"",
-                "thumb":"",
-                "duration":""
+                "uploader": "",
+                "thumb": "",
+                "duration": ""
             }];
 
             var songStream = {
-                "id":song._id,
-                "songs":songs,
-                "video":song.url,
-                "audio":""
+                "id": song._id,
+                "songs": songs,
+                "video": song.url,
+                "audio": ""
             }
             callback(songStream);
         } else {

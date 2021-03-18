@@ -74,6 +74,16 @@ router.post('/add', async (req, res) => {
     db.check_exist(params, res);
 });
 
+//Clear task
+router.get('/count', async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    db.count(res);
+});
+
 //Add many document
 router.post('/add-many-document', async (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
