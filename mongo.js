@@ -263,6 +263,7 @@ exports.insert_many_document = async function (params, res) {
         res.send(settings.SUCCESS);
         res.end();
     }).catch((err)=>{
+        console.log(err);
         res.send(settings.ERR);
         res.end();
     });
