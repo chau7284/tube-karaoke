@@ -270,7 +270,7 @@ function findFarmer(videoId, key) {
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
-                    if (streamData !== null)
+                    if (streamData === null)
                         firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
                 });
             } else {
