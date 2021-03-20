@@ -31,6 +31,13 @@ exports.convertDate = function (date) {
     return date.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
 }
 
+exports.getCurrentDate = function () {
+    var date = new Date();
+    date.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' });
+    var time = String(date.toISOString()).substring(0,10);
+    return time;
+}
+
 exports.createId = function () {
     var date = new Date();
     var y = String(date.getFullYear()).substring(2);

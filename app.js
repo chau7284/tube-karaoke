@@ -67,10 +67,14 @@ app.use('/key', code);
 var video = require('./routes/video');
 app.use('/video', video);
 
+var history = require('./routes/history');
+app.use('/history', history);
+
 
 //////////////////////////////////////////////////
 var db = require('./mongo');
 var dbAccount = require('./dbAccount');
+var dbHistory = require('./dbHistory');
 const { Socket } = require('dgram');
 const key = async (req, res, next) => {
     try {
@@ -118,12 +122,12 @@ app.get('/get', key, async (req, res) => {
                     res.json(song);
                     res.end();
                     console.log("");
-                }else if(song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)){
+                } else if (song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)) {
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
                     console.log("");
-                }else {
+                } else {
                     console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
                     findFarmer(videoId, req.query.key).then(streamData => {
                         if (streamData)
@@ -252,6 +256,7 @@ function findFarmer(videoId, key) {
         if (farmers.length <= 0) {
             resolve(null);
             //Log
+            writeHistory(key, 0);
             firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
         } else {
             //Framer
@@ -261,6 +266,7 @@ function findFarmer(videoId, key) {
                 var timeout = setTimeout(() => {
                     resolve(null);
                     //Log
+                    writeHistory(key, 0);
                     firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
                 }, TIMEOUT);
                 //farmers.shift();
@@ -270,12 +276,17 @@ function findFarmer(videoId, key) {
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
-                    if (streamData === null)
+                    if (streamData === null) {
+                        writeHistory(key, 0);
                         firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
+                    } else {
+                        writeHistory(key, 1);
+                    }
                 });
             } else {
                 resolve(null);
                 //Log
+                writeHistory(key, 0);
                 firestore.updatenull("unknown", videoId, key, 4, "socket: null");
             }
         }
@@ -320,3 +331,137 @@ io.sockets.on('connection', (socket) => {
 //schedule.scheduleJob({ hour: 1, minute: 15 }, function (time) {
 //    axios.getListVersion();
 //});
+
+
+// History
+function writeHistory(key, status) {
+    var date = utils.getCurrentDate();
+    var arr = date.split("-");
+    var day = 0;
+    var month = 0;
+    var year = 0
+    if (arr.length > 2) {
+        day = arr[2];
+        month = arr[1];
+        year = arr[0];
+    }
+    var success = 0;
+    var error = 0;
+
+    if(status === 1){
+        success = 1;
+    }else{
+        error = 1;
+    }
+
+    var params = {
+        "_id": date,
+        "year": year,
+        "month": month,
+        "day": day,
+        "success": success,
+        "error": error
+    }
+
+
+    dbHistory.findOne(
+        {
+            _id: key,
+            "history._id": date
+        },
+        {
+            "history.$": 1 //Get 1 element
+        }
+    )
+    .exec((err, his) => {
+        if (his !== null) {
+            //Exist
+            if(status === 1){
+                params.success = his.history[0].success + 1;
+                params.error = his.history[0].error;
+            }else{
+                params.success = his.history[0].success;
+                params.error = his.history[0].error + 1;
+            }
+            update(key, params);
+        } else {
+            //Not Exist
+            checkKeyExist(key, params);
+        }
+    });
+}
+
+function checkKeyExist(key, params) {
+    dbHistory.findOne(
+        {
+            _id: key,
+        }
+    )
+    .exec((err, his) => {
+        if(his !== null){
+            insert(key, params);
+        }else{
+            insertWithKey(key, params)
+        }
+    });
+}
+
+function insertWithKey(key, params) {
+    try {
+        dbHistory.create(
+            {
+                _id: key,
+                history: params
+            }
+            ,
+            (err, result) => {
+                console.log("INSERT-HISTORY-WITH-KEY ->" + key);
+            }
+        );
+    } catch (err) {
+    }
+}
+
+function insert(key, params) {
+    try {
+        dbHistory.updateOne(
+            {
+                _id: key
+            },
+            {
+                $push: {
+                    history: params
+                }
+            }
+        ).exec((err, result)=>{
+            console.log("INSERT-HISTORY ->" + key);
+        });
+    } catch (err) {
+
+    }
+}
+
+function update(key, params) {
+    try {
+        dbHistory.updateOne(
+            {
+                _id: key,
+                "history._id": params._id
+            },
+            {
+                "$set":
+                {
+                    "history.$.success": params.success,
+                    "history.$.error": params.error,
+                }
+            },
+        )
+            .exec((err, result) => {
+                console.log("UPDATE-HISTORY ->" + key);
+            });
+    } catch (err) {
+
+    }
+}
+
+
