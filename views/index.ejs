@@ -1,0 +1,181 @@
+<% var params=data%>
+  <!DOCTYPE html>
+  <html>
+
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="Youtube Viewer, Youtube Sub, Youtube View">
+    <meta name="keywords" content="youtube viewer, youtube sub, youtube view, youtube tool, youtube cheo">
+    <link rel="icon" href="image/favicon.ico" sizes="32x32">
+    <title>Dzolink</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection" />
+    <link href="css/style-tube.css" type="text/css" rel="stylesheet" media="screen,projection" />
+
+  </head>
+
+  <body class="teal">
+    <nav class="teal" role="navigation">
+      <div class="nav-wrapper container">
+        <a id="logo-container" href="#" class="brand-logo" style="margin-top: 10px;"><img src="image/logo.png"
+            height="40px;"></a>
+        <ul class="right hide-on-med-and-down">
+          <h5>Dzolink</h5>
+        </ul>
+
+      </div>
+    </nav>
+
+    <main>
+      <div class="container" style="margin-top: 3%;">
+
+        <div class="row">
+          <div class="input-field col s5">
+            <input id="key" type="text" class="validate">
+            <label for="key">Nhập KEY của bạn</label>
+          </div>
+
+          <div class="input-field col s4">
+            <input id="month" type="text" class="validate">
+            <label for="month">Chọn Một Tháng</label>
+            <!-- <selects>
+            <option value="" disabled selected>Chọn Một Tháng</option>
+            <option value="1">Tháng 1</option>
+            <option value="2">Tháng 2</option>
+            <option value="3">Tháng 3</option>
+            <option value="4">Tháng 4</option>
+            <option value="5">Tháng 5</option>
+            <option value="6">Tháng 6</option>
+            <option value="7">Tháng 7</option>
+            <option value="8">Tháng 8</option>
+            <option value="9">Tháng 9</option>
+            <option value="10">Tháng 10</option>
+            <option value="11">Tháng 11</option>
+            <option value="12">Tháng 12</option>
+          </select> -->
+          </div>
+
+          <div class="input-field col s3">
+            <a class="waves-effect waves-light btn-large" id="watch"><i class="material-icons left">equalizer</i>Chi Tiết</a>
+          </div>
+        </div>
+
+        <%if(params !==null && params.length> 0){%>
+          <div>
+            <div class="col s12 center" style="margin-bottom: 10%; margin-top: 5%;">
+              <%if(params !==null && params.length> 0){%>
+                <h3 style="color: white;">Thống Kê Tháng <%= params[0].month%>
+                </h3>
+                <%}%>
+            </div>
+
+            <table class="highlight responsive-table" id="tb">
+              <thead>
+                <tr>
+                  <th>
+                  </th>
+                  <% for(var i=0; i < params.length; i++) { %>
+                    <th>
+                      <%= params[i].day %>
+                    </th>
+                    <% } %>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>
+                    Success
+                  </td>
+                  <% for(var i=0; i < params.length; i++) { %>
+                    <td>
+                      <%= params[i].success %>
+                    </td>
+                    <% } %>
+                </tr>
+
+                <tr>
+                  <td>
+                    Error
+                  </td>
+                  <% for(var i=0; i < params.length; i++) { %>
+                    <td>
+                      <%= params[i].error %>
+                    </td>
+                    <% } %>
+                </tr>
+
+              </tbody>
+            </table>
+
+            <div class="row right">
+              <div class="input-field col s12">
+                <a class="waves-effect waves-light btn-large" id="export"><i class="material-icons left">exit_to_app</i>Xuất
+                  Excel</a>
+              </div>
+            </div>
+
+            <div class="row right">
+              <div class="input-field col s12">
+                <% var total = 0;%>
+                <% for(var i=0; i < params.length; i++) { %>
+                    <% total += params[i].success;%>
+                  <% } %>
+                <h5 style="color: brown;" id="total">Tổng cộng: <%=total%></h5>
+              </div>
+            </div>
+
+          </div>
+      </div>
+      <%}%>
+    </main>
+
+    <footer class="center page-footer teal">
+      <div class="footer-copyright">
+        <div class="container"><a class="brown-text text-lighten-3" href="">Kingpes</a>
+        </div>
+      </div>
+    </footer>
+
+    <!--  Scripts-->
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="js/jquery.table2excel.js"></script>
+    <script src="js/materialize.js"></script>
+
+    <script>
+      $(document).ready(function () {
+        $('select').formSelect();
+      });
+      
+      $("#key").val(localStorage.getItem("key"));
+      //$("#month").val(localStorage.getItem("month"));
+
+      $("#watch").click(function () {
+        var key = $("#key").val();
+        var month = $("#month").val();
+        if (key !== '' && month !== ''){
+          window.location.href = "http://localhost:3000?key=" + key + "&month=" + month;
+          localStorage.setItem("key", key);
+          localStorage.setItem("month", month);
+        }else
+          alert("Nhập KEY và THÁNG cần xem")
+      });
+
+      $("#export").click(function () {
+        $("#tb").table2excel({
+          exclude: ".noExl",
+          name: "TubeApi",
+          filename: "TubeApi",
+          fileext: ".xls"
+        });
+      });
+    </script>
+  </body>
+
+  </html>

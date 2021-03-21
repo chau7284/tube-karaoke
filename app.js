@@ -1,10 +1,6 @@
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
-const io = require('socket.io').listen(server, {
-    pingTimeout: 1000,
-    pingInterval: 1000
-});
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -13,455 +9,290 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const settings = require('./settings');
 const utils = require('./utils');
 const firestore = require('./firestore');
-//const axios = require('./axios');
-let connections = [];
-let farmers = [];
-const TIMEOUT = 10000;
+const axios = require('axios');
+
+const path = require('path');
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, './views'));
+app.use(express.static(path.join(__dirname, './public')));
 
 server.listen(process.env.PORT || 3000);
 console.log("Server running...port: 3000");
 
 
-///////////////////Mongo///////////////////////////
-const mongoose = require('mongoose');
-//Config Mongo DB
-const DATABASE_URL = "'mongodb://localhost/tubekaraoke";
-const DATABASE_CONNECT_OPTION = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-};
-//Connnect Mongo DB
-mongoose.connect(DATABASE_URL, DATABASE_CONNECT_OPTION);
-mongoose.connection.on("connected", () => {
-    console.log("Connected to database successfully");
-});
-//Error Mongo DB
-mongoose.connection.on("disconnected", () => {
-    console.log("Can not connected to database");
-});
-////////////////////END-MONGO///////////////////////
+app.get("/", async (req, res) => {
 
-app.get("/", (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
+    var key = req.query.key;
+    var month = req.query.month;
 
-app.get("/get-farmer", (req, res) => {
-    res.send(String(farmers.length) + "/" + String(connections.length));
-});
+    console.log(key + month);
 
-var link = require('./routes/link');
-app.use('/link', link);
+    const response = await axios.get('http://apk-box.lizks.com/NASOTA/nasversion.json');
+    var resp = response.data;
+    if (resp !== null) {
+        var arr = resp.Youtube;
+        if (arr !== null && arr.length > 0) {
+            var ver = arr[0].list;
+            console.log(ver);
 
-var account = require('./routes/account');
-app.use('/account', account);
-
-var user = require('./routes/user');
-app.use('/user', user);
-
-var tracking = require('./routes/tracking');
-app.use('/tracking', tracking);
-
-var code = require('./routes/key');
-app.use('/key', code);
-
-var video = require('./routes/video');
-app.use('/video', video);
-
-var history = require('./routes/history');
-app.use('/history', history);
-
-
-//////////////////////////////////////////////////
-var db = require('./mongo');
-var dbAccount = require('./dbAccount');
-var dbHistory = require('./dbHistory');
-const { Socket } = require('dgram');
-const key = async (req, res, next) => {
-    try {
-        var apiKey = req.query.key;
-
-        await dbAccount.findOne(
-            { key: apiKey }
-        ).exec((error, user) => {
-            if (!error) {
-                if (user == null) {
-                    res.json(settings.KEY_INVALID);
-                    res.end();
-                } else {
-                    if (user.counter > 0) {
-                        user.counter--;
-                        user.updated = new Date();
-                        user.save()
-                        next();
-                    } else {
-                        res.json(settings.KEY_LIMITED);
-                        res.end();
-                    }
-                }
-            } else {
-                res.json(settings.ERROR);
-                res.end();
-            }
-        });
-
-    } catch (error) {
-        res.json(settings.ERROR);
-        res.end();
-    }
-}
-
-//Public
-app.get('/get', key, async (req, res) => {
-    try {
-        var videoId = req.query.videoId;
-        console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
-        await db.find_song_by_id(videoId, song => {
-            if (song != null) {
-                if (song.video.length > 0 && !utils.checkExpire(song.video[0].url)) {
-                    console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                    res.json(song);
-                    res.end();
-                    console.log("");
-                } else if (song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)) {
-                    console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                    res.json(song);
-                    res.end();
-                    console.log("");
-                } else {
-                    console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
-                    findFarmer(videoId, req.query.key).then(streamData => {
-                        if (streamData)
-                            console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-                        else
-                            console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-                        res.json(streamData);
-                        res.end();
-                        console.log("");
-                    });
-                }
-            } else {
-                findFarmer(videoId, req.query.key).then(streamData => {
-                    if (streamData)
-                        console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-                    else
-                        console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-                    res.json(streamData);
-                    res.end();
-                    console.log("");
-                });
-            }
-        });
-    } catch (err) {
-        res.json(settings.ERROR);
-        res.end();
-    }
-});
-
-//Test Heroku
-app.get('/get-link-farmer', async (req, res) => {
-    if (req.headers['secret'] !== settings.SECRET) {
-        res.json(settings.UN_AUTH);
-        res.end();
-        return;
-    }
-
-    var videoId = req.query.videoId;
-    findFarmer(videoId, "TEST").then(streamData => {
-        if (streamData)
-            console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-        else
-            console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-        res.json(streamData);
-        res.end();
-        console.log("");
-    });
-});
-
-//Dzo Kara Dropbox
-app.get('/get-link', async (req, res) => {
-    if (req.headers['secret'] !== settings.SECRET) {
-        res.json(settings.UN_AUTH);
-        res.end();
-        return;
-    }
-    try {
-        var videoId = req.query.videoId;
-        console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
-        await db.find_video_by_id(videoId, songStream => {
-            if (songStream != null) {
-                console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                res.json(songStream);
-                res.end();
-                console.log("");
-            } else {
-                findExtractFarmer(videoId).then(streamData => {
-                    if (streamData)
-                        console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-                    else
-                        console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-                    res.json(streamData);
-                    res.end();
-                    console.log("");
-                });
-            }
-        });
-    } catch (err) {
-        res.json(settings.ERROR);
-        res.end();
-    }
-});
-
-function findExtractFarmer(videoId) {
-    console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
-    return new Promise((resolve) => {
-        if (connections.length <= 0) {
-            resolve(null);
-        } else {
-            //Framer
-            var socket = null;
-            for (var sock of connections) {
-                if (sock.free) {
-                    socket = sock;
-                    break;
-                }
-            }
-
-            if (socket != null) {
-                var timeout = setTimeout(() => {
-                    socket.free = true;
-                    resolve(null);
-                }, TIMEOUT);
-                socket.free = false;
-                connections.splice(connections.indexOf(socket), 1); //remove socket
-                socket.emit("EXTRACT", videoId);
-                socket.on(videoId, streamData => {
-                    clearTimeout(timeout);
-                    socket.free = true;
-                    connections.push(socket); //add socket
-                    resolve(streamData);
-                });
-            } else {
-                resolve(null);
-            }
-        }
-    })
-}
-
-function findFarmer(videoId, key) {
-    console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
-    return new Promise((resolve) => {
-        if (farmers.length <= 0) {
-            farmers = connections.slice(); //copy
-        }
-        if (farmers.length <= 0) {
-            resolve(null);
-            //Log
-            writeHistory(key, 0);
-            firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
-        } else {
-            //Framer
-            //var socket = farmers[0];
-            var socket = farmers[Math.floor(Math.random() * farmers.length)]; //get random
-            if (socket != null) {
-                var timeout = setTimeout(() => {
-                    resolve(null);
-                    //Log
-                    writeHistory(key, 0);
-                    firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
-                }, TIMEOUT);
-                //farmers.shift();
-                farmers.splice(farmers.indexOf(socket), 1); //remove socket
-                socket.emit("EXTRACT", videoId);
-                socket.on(videoId, streamData => {
-                    clearTimeout(timeout);
-                    resolve(streamData);
-                    //Log
-                    if (streamData === null) {
-                        writeHistory(key, 0);
-                        firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
-                    } else {
-                        writeHistory(key, 1);
-                    }
-                });
-            } else {
-                resolve(null);
-                //Log
-                writeHistory(key, 0);
-                firestore.updatenull("unknown", videoId, key, 4, "socket: null");
-            }
-        }
-    })
-}
-
-
-/////////////////////Socket////////////////////
-io.sockets.on('connection', (socket) => {
-    socket.free = true;
-    socket.deviceName = "unknown";
-    connections.push(socket);
-    console.log('<Connected>: -> %s sockets connected', connections.length);
-    socket.emit('CONNECTED', "Connected...");
-
-    socket.on('disconnect', () => {
-        connections.splice(connections.indexOf(socket), 1);
-        farmers = [];
-        console.log('<Disconnect>: -> %s sockets connected', connections.length);
-    });
-
-    socket.on('CONNECTED', (deviceName) => {
-        socket.deviceName = deviceName;
-        //socket.emit('CONNECTED', "Connected...");
-    });
-
-    socket.on('START', () => {
-        socket.emit('CONNECTED', "Connected...");
-    });
-
-    socket.on('PING', () => {
-        var name = '';
-        for (var sock of connections) {
-            name += sock.deviceName + ","
-        }
-        name = name.substring(0, name.length - 1);
-        socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + (connections.indexOf(socket) + 1));
-    });
-})
-
-//Schedule
-//schedule.scheduleJob({ hour: 1, minute: 15 }, function (time) {
-//    axios.getListVersion();
-//});
-
-
-// History
-function writeHistory(key, status) {
-    var date = utils.getCurrentDate();
-    var arr = date.split("-");
-    var day = 0;
-    var month = 0;
-    var year = 0
-    if (arr.length > 2) {
-        day = arr[2];
-        month = arr[1];
-        year = arr[0];
-    }
-    var success = 0;
-    var error = 0;
-
-    if(status === 1){
-        success = 1;
-    }else{
-        error = 1;
-    }
-
-    var params = {
-        "_id": date,
-        "year": year,
-        "month": month,
-        "day": day,
-        "success": success,
-        "error": error
-    }
-
-
-    dbHistory.findOne(
-        {
-            _id: key,
-            "history._id": date
-        },
-        {
-            "history.$": 1 //Get 1 element
-        }
-    )
-    .exec((err, his) => {
-        if (his !== null) {
-            //Exist
-            if(status === 1){
-                params.success = his.history[0].success + 1;
-                params.error = his.history[0].error;
-            }else{
-                params.success = his.history[0].success;
-                params.error = his.history[0].error + 1;
-            }
-            update(key, params);
-        } else {
-            //Not Exist
-            checkKeyExist(key, params);
-        }
-    });
-}
-
-function checkKeyExist(key, params) {
-    dbHistory.findOne(
-        {
-            _id: key,
-        }
-    )
-    .exec((err, his) => {
-        if(his !== null){
-            insert(key, params);
-        }else{
-            insertWithKey(key, params)
-        }
-    });
-}
-
-function insertWithKey(key, params) {
-    try {
-        dbHistory.create(
-            {
-                _id: key,
-                history: params
-            }
-            ,
-            (err, result) => {
-                console.log("INSERT-HISTORY-WITH-KEY ->" + key);
-            }
-        );
-    } catch (err) {
-    }
-}
-
-function insert(key, params) {
-    try {
-        dbHistory.updateOne(
-            {
-                _id: key
-            },
-            {
-                $push: {
-                    history: params
-                }
-            }
-        ).exec((err, result)=>{
-            console.log("INSERT-HISTORY ->" + key);
-        });
-    } catch (err) {
-
-    }
-}
-
-function update(key, params) {
-    try {
-        dbHistory.updateOne(
-            {
-                _id: key,
-                "history._id": params._id
-            },
-            {
-                "$set":
+            var params = [
                 {
-                    "history.$.success": params.success,
-                    "history.$.error": params.error,
+                    "_id":"2021-03-01",
+                    "day":1,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-02",
+                    "day":2,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-03",
+                    "day":3,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-04",
+                    "day":4,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-05",
+                    "day":5,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-06",
+                    "day":6,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-07",
+                    "day":7,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-08",
+                    "day":8,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-09",
+                    "day":9,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-10",
+                    "day":10,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-11",
+                    "day":11,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-12",
+                    "day":12,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-13",
+                    "day":13,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-14",
+                    "day":14,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-15",
+                    "day":15,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-16",
+                    "day":16,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-17",
+                    "day":17,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-18",
+                    "day":18,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-19",
+                    "day":19,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-20",
+                    "day":20,
+                    "month":3,
+                    "year":2021,
+                    "success":10,
+                    "error":2
+                },
+                {
+                    "_id":"2021-03-21",
+                    "day":21,
+                    "month":3,
+                    "year":2021,
+                    "success":30,
+                    "error":5
+                },
+                {
+                    "_id":"2021-03-22",
+                    "day":22,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-23",
+                    "day":23,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-24",
+                    "day":24,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-25",
+                    "day":25,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-26",
+                    "day":26,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-27",
+                    "day":27,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-28",
+                    "day":28,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-29",
+                    "day":29,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-30",
+                    "day":30,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
+                },
+                {
+                    "_id":"2021-03-31",
+                    "day":31,
+                    "month":3,
+                    "year":2021,
+                    "success":60,
+                    "error":4
                 }
-            },
-        )
-            .exec((err, result) => {
-                console.log("UPDATE-HISTORY ->" + key);
-            });
-    } catch (err) {
+            ]
 
+            console.log(params.length);
+
+            res.render('index', { data: params});
+
+        }
     }
-}
+});
+
 
 
