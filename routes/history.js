@@ -30,4 +30,35 @@ router.get("/find-history", async (req, res) => {
         });
 });
 
+router.put("/delete-history-by-month", async (req, res) => {
+    if (req.headers['secret'] !== settings.SECRET) {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    var key = req.query.key;
+    var month = req.query.month;
+
+    try {
+        await dbHistory.updateOne(
+            {
+                _id: key
+            }
+            ,
+            {
+                $pull: { "history": { "month": month } }
+            }
+            ,
+            (err, result) => {
+                console.log('<<<<<-DELETE-HISTORY: >>>>>month:' + month);
+                res.json(result);
+                res.end();
+            }
+        );
+    } catch (err) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
 module.exports = router;
