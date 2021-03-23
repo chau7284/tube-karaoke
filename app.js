@@ -275,9 +275,10 @@ function findFarmer(videoId, key) {
                 farmers.splice(farmers.indexOf(socket), 1); //remove socket
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
-                    socket.removeAllListeners();
+                    socket.removeAllListeners(videoId);
                     clearTimeout(timeout);
                     resolve(streamData);
+                    console.log("A");
                     //Log
                     if (streamData === null) {
                         writeHistory(key, 0);
@@ -326,7 +327,7 @@ io.sockets.on('connection', (socket) => {
             name += sock.deviceName + ","
         }
         name = name.substring(0, name.length - 1);
-        socket.emit('PING', "OK -> Farmer: " + name + " -> Position: " + (connections.indexOf(socket) + 1));
+        socket.emit('PING', "OK -> Farmer: " + name + " -> Total: " + connections.length);
     });
 })
 
