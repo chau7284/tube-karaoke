@@ -121,12 +121,14 @@ app.get('/get', key, async (req, res) => {
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
-                    console.log("");
+                    //Log
+                    writeHistory(req.query.key, 1);
                 } else if (song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)) {
                     console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
                     res.json(song);
                     res.end();
-                    console.log("");
+                    //Log
+                    writeHistory(req.query.key, 1);
                 } else {
                     console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
                     findFarmer(videoId, req.query.key).then(streamData => {
@@ -273,6 +275,7 @@ function findFarmer(videoId, key) {
                 farmers.splice(farmers.indexOf(socket), 1); //remove socket
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
+                    socket.removeAllListeners();
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
