@@ -275,10 +275,9 @@ function findFarmer(videoId, key) {
                 farmers.splice(farmers.indexOf(socket), 1); //remove socket
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
-                    socket.removeAllListeners(videoId);
+                    //socket.removeAllListeners(videoId);
                     clearTimeout(timeout);
                     resolve(streamData);
-                    console.log("A");
                     //Log
                     if (streamData === null) {
                         writeHistory(key, 0);
