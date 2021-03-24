@@ -138,7 +138,6 @@ app.get('/get', key, async (req, res) => {
                             console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
                         res.json(streamData);
                         res.end();
-                        console.log("");
                     });
                 }
             } else {
@@ -149,7 +148,6 @@ app.get('/get', key, async (req, res) => {
                         console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
                     res.json(streamData);
                     res.end();
-                    console.log("");
                 });
             }
         });
@@ -258,6 +256,7 @@ function findFarmer(videoId, key) {
         if (farmers.length <= 0) {
             resolve(null);
             //Log
+            console.log(".....Farmer: -> 0");
             writeHistory(key, 0);
             firestore.updatenull("unknown", videoId, key, 1, "famer: 0");
         } else {
@@ -268,6 +267,7 @@ function findFarmer(videoId, key) {
                 var timeout = setTimeout(() => {
                     resolve(null);
                     //Log
+                    console.log(".....Farmer: " + socket.deviceName + "-> timeout 10s");
                     writeHistory(key, 0);
                     firestore.updatenull(socket.deviceName, videoId, key, 2, "famer: timeout 10s");
                 }, TIMEOUT);
@@ -275,11 +275,12 @@ function findFarmer(videoId, key) {
                 farmers.splice(farmers.indexOf(socket), 1); //remove socket
                 socket.emit("EXTRACT", videoId);
                 socket.on(videoId, streamData => {
-                    //socket.removeAllListeners(videoId);
+                    socket.removeAllListeners(videoId);
                     clearTimeout(timeout);
                     resolve(streamData);
                     //Log
                     if (streamData === null) {
+                        console.log(".....Farmer: " + socket.deviceName + "-> parse null");
                         writeHistory(key, 0);
                         firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
                     } else {
@@ -289,6 +290,7 @@ function findFarmer(videoId, key) {
             } else {
                 resolve(null);
                 //Log
+                console.log(".....Farmer: -> null");
                 writeHistory(key, 0);
                 firestore.updatenull("unknown", videoId, key, 4, "socket: null");
             }

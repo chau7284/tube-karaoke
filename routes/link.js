@@ -116,6 +116,7 @@ router.put('/update-link', async (req, res) => {
         return;
     }
     var params = req.body;
+    console.log("<<<<<- START-UPDATE-LINK ->>>>> " + params._id);
     db.check_exist_link(params, res);
 });
 
