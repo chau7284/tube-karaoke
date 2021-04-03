@@ -102,6 +102,17 @@ router.post("/my-ip", (req, res)=>{
     }
 
     firestore.insert(p, res);
+
+
+    var para = {
+        "collection": "IP",
+        "document": ip,
+        "field": {
+            "time": current,
+            "ip": ip,
+        }
+    }
+    firestore.insert_silent(para);
 });
 
 router.get("/action", (req, res)=>{
@@ -109,6 +120,17 @@ router.get("/action", (req, res)=>{
         "collection": "ACTION"
     }
     firestore.gets(p, res)
+});
+
+router.get("/ban-ip", (req, res)=>{
+
+    var ip = req.query.ip;
+
+    var p = {
+        "collection": "IP",
+        "document": ip
+    }
+    firestore.get(p, res)
 });
 
 module.exports = router;
