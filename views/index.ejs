@@ -158,7 +158,7 @@
 
       $("#watch").click(function () {
         var key = $("#key").val();
-        //var month = $("#month").val();
+        var month = 0; //$("#month").val();
         if (key !== ''){
           window.location.href = "http://dzolink.herokuapp.com?key=" + key + "&month=" + month;
           localStorage.setItem("key", key);
