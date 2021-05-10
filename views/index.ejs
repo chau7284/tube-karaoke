@@ -34,33 +34,30 @@
       <div class="container" style="margin-top: 3%;">
 
         <div class="row">
-          <div class="input-field col s9">
+          <div class="input-field col s8">
             <input id="key" type="text" class="validate">
             <label for="key">Nhập KEY của bạn</label>
           </div>
 
-          <!-- <div class="input-field col s4">
-            <input id="month" type="text" class="validate">
-            <label for="month">Chọn Một Tháng</label> -->
-            <!-- <selects>
-            <option value="" disabled selected>Chọn Một Tháng</option>
-            <option value="1">Tháng 1</option>
-            <option value="2">Tháng 2</option>
-            <option value="3">Tháng 3</option>
-            <option value="4">Tháng 4</option>
-            <option value="5">Tháng 5</option>
-            <option value="6">Tháng 6</option>
-            <option value="7">Tháng 7</option>
-            <option value="8">Tháng 8</option>
-            <option value="9">Tháng 9</option>
-            <option value="10">Tháng 10</option>
-            <option value="11">Tháng 11</option>
-            <option value="12">Tháng 12</option>
-          </select> -->
-          <!-- </div> -->
+          <div class="input-field col s4">
+            <a class="waves-effect waves-light btn-large" id="watch"><i class="material-icons left">equalizer</i>Chi
+              Tiết</a>
+          </div>
+        </div>
 
-          <div class="input-field col s3">
-            <a class="waves-effect waves-light btn-large" id="watch"><i class="material-icons left">equalizer</i>Chi Tiết</a>
+        <div class="row">
+          <div class="input-field col s4">
+            <input id="from" type="text" class="validate">
+            <label for="from">Từ ngày (yyyymmdd)</label>
+          </div>
+
+          <div class="input-field col s4">
+            <input id="to" type="text" class="validate">
+            <label for="to">Đến ngày (yyyymmdd)</label>
+          </div>
+          <div class="input-field col s4">
+            <a class="waves-effect waves-light btn-large" id="filter"><i
+                class="material-icons left">equalizer</i>Filter</a>
           </div>
         </div>
 
@@ -68,7 +65,7 @@
           <div>
             <div class="col s12 center" style="margin-bottom: 10%; margin-top: 5%;">
               <%if(params !==null && params.length> 0){%>
-                <h3 style="color: white;">Thống Kê Tháng <%= params[0].month%>
+                <h3 style="color: blue;">Thống Kê
                 </h3>
                 <%}%>
             </div>
@@ -115,18 +112,20 @@
 
             <div class="row right">
               <div class="input-field col s12">
-                <a class="waves-effect waves-light btn-large" id="export"><i class="material-icons left">exit_to_app</i>Xuất
+                <a class="waves-effect waves-light btn-large" id="export"><i
+                    class="material-icons left">exit_to_app</i>Xuất
                   Excel</a>
               </div>
             </div>
 
             <div class="row right">
               <div class="input-field col s12">
-                <% var total = 0;%>
-                <% for(var i=0; i < params.length; i++) { %>
-                    <% total += params[i].success;%>
-                  <% } %>
-                <h5 style="color: brown;" id="total">Tổng cộng: <%=total%></h5>
+                <% var total=0;%>
+                  <% for(var i=0; i < params.length; i++) { %>
+                    <% total +=params[i].success;%>
+                      <% } %>
+                        <h5 style="color: brown;" id="total">Tổng cộng: <%=total%>
+                        </h5>
               </div>
             </div>
 
@@ -152,19 +151,95 @@
       $(document).ready(function () {
         $('select').formSelect();
       });
-      
+
       $("#key").val(localStorage.getItem("key"));
-      //$("#month").val(localStorage.getItem("month"));
+
 
       $("#watch").click(function () {
         var key = $("#key").val();
         var month = 0; //$("#month").val();
-        if (key !== ''){
+        if (key !== '') {
           window.location.href = "http://dzolink.herokuapp.com?key=" + key + "&month=" + month;
           localStorage.setItem("key", key);
           //localStorage.setItem("month", month);
-        }else
+        } else
           alert("Nhập KEY")
+      });
+
+      $("#filter").click(function () {
+        let from = $("#from").val();
+        let to = $("#to").val();
+        if (from !== '' && to !== '') {
+
+          //alert(datediff(parseDate(from), parseDate(to)));
+
+          var mins = Number(from);
+          var maxs = Number(to);
+
+          var title = '';
+          var success = '';
+          var error = '';
+          var total = 0;
+          '<% params.forEach(function(item, index){%>';
+          var m = '<%-item.month%>'.toString();
+          if ('<%-item.month%>' <= 9) m = "0" + m;
+          var d = '<%-item.day%>'.toString();
+          if ('<%-item.day%>' <= 9) d = "0" + d;
+          if (Number('<%-item.year%>' + m + d) >= mins && Number('<%-item.year%>' + m + d) <= maxs) {
+            title += '<th>'
+            title += '<%-item.day%>'
+            title += '</th>'
+
+            success += '<th>'
+            success += '<%-item.success%>'
+            success += '</th>'
+
+            error += '<th>'
+            error += '<%-item.error%>'
+            error += '</th>'
+
+            total += Number('<%-item.success%>')
+          }
+          '<%})%>'
+
+          var html = '<thead>'
+          html += '<tr>'
+          html += '<th>'
+          html += '</th>'
+
+          html += title
+
+          html += '</tr>'
+          html += '</thead>'
+
+          html += '<tbody>'
+
+          html += '<tr>'
+          html += '<td>'
+          html += 'Success'
+          html += '</td>'
+          
+          html += success
+
+          html += '</tr>'
+
+          html += '<tr>'
+          html += '<td>'
+          html += 'Error'
+          html += '</td>'
+          
+          html += error
+
+          html += '</tr>'
+
+          html += '</tbody>'
+
+          $('#tb').empty();
+          $('#tb').append(html);
+
+          $('#total').text("Tổng cộng: " + total);
+
+        }
       });
 
       $("#export").click(function () {
@@ -175,6 +250,16 @@
           fileext: ".xls"
         });
       });
+
+      function parseDate(str) {
+        var mdy = str.split('/');
+        return new Date(mdy[2], mdy[1] - 1, mdy[0]);
+      }
+
+      function datediff(first, second) {
+        return Math.round((second - first) / (1000 * 60 * 60 * 24));
+      }
+
     </script>
   </body>
 
