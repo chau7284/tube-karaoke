@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
- 
+
+//Youtube Newpie
 const songSchema = new mongoose.Schema(
     {
         _id: String, //videoId,
         counter: Number,
-        type:Number,
+        type: Number,
         video: [
             {
                 _id: String,
@@ -17,7 +18,7 @@ const songSchema = new mongoose.Schema(
                 url: String
             }
         ],
-        mix:[
+        mix: [
             {
                 _id: String,
                 url: String
@@ -25,5 +26,5 @@ const songSchema = new mongoose.Schema(
         ]
     },
 );
- 
+
 module.exports = mongoose.model('song', songSchema);

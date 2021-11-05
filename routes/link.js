@@ -7,7 +7,7 @@ const firestore = require('../firestore');
 
 /**
 *  
-* WORKER 
+* WORKER NEWPIEW
 * 
 */
 
@@ -149,7 +149,7 @@ router.delete('/delete-all-document', async (req, res) => {
         res.end();
         return;
     }
-   
+
     db.delete_all_document(res);
 });
 
@@ -199,10 +199,10 @@ router.post('/update-error', async (req, res) => {
 
     var p = {
         "collection": "DZOLINK",
-        "document": params.deviceName + "|"+ new Date().toISOString(),
+        "document": params.deviceName + "|" + new Date().toISOString(),
         "field": {
             "videoId": params.videoId,
-            "battery":params.battery,
+            "battery": params.battery,
             "ip": ip,
             "time": current
         }
@@ -230,7 +230,7 @@ router.post('/update-ban', async (req, res) => {
         "field": {
             "deviceName": params.deviceName,
             "videoId": params.videoId,
-            "battery":params.battery,
+            "battery": params.battery,
             "ip": ip,
             "time": current
         }
@@ -257,7 +257,7 @@ router.post('/update-sleeping', async (req, res) => {
         "document": params.deviceName + "|" + new Date().toISOString(),
         "field": {
             "deviceName": params.deviceName,
-            "battery":params.battery,
+            "battery": params.battery,
             "ip": ip,
             "time": current
         }

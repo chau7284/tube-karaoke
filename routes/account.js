@@ -38,6 +38,7 @@ const auth = async (req, res, next) => {
     }
 }
 
+//Create Key
 router.post('/signup', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -56,7 +57,7 @@ router.post('/signup', (req, res) => {
         "_id": params._id,
         "password": params.password,
         "key": key,
-        "counter": 100,
+        "counter": 1000000,
         "created": new Date()
     }
 
@@ -81,6 +82,7 @@ router.post('/signup', (req, res) => {
 
 });
 
+//
 router.post('/signin', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -122,6 +124,7 @@ router.post('/signin', (req, res) => {
 
 });
 
+//Update Key
 router.put('/update', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -169,6 +172,7 @@ router.put('/update', (req, res) => {
     }
 })
 
+//Get All Key
 router.get('/selects', (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
@@ -193,18 +197,14 @@ router.get('/selects', (req, res) => {
     }
 })
 
+//Get Key Detail With Validate
 router.get('/info', auth, (req, res) => {
     if (req.headers['secret'] !== settings.SECRET) {
         res.json(settings.UN_AUTH);
         res.end();
         return;
     }
-    /**
-    *  {
-        "_id":"0901810481",
-        "counter": 10
-    *  }
-    */
+
     var k = req.query.key;
 
     try {
@@ -227,13 +227,9 @@ router.get('/info', auth, (req, res) => {
     }
 })
 
+//Get Key Detail Without Validate
 router.get('/key-info', (req, res) => {
-    /**
-    *  {
-        "_id":"0901810481",
-        "counter": 10
-    *  }
-    */
+
     var k = req.query.key;
 
     try {
@@ -243,7 +239,7 @@ router.get('/key-info', (req, res) => {
             }
         ).exec((err, acc) => {
             if (!err && acc) {
-                res.json({"counter":acc.counter});
+                res.json({ "counter": acc.counter });
                 res.end();
             } else {
                 res.json(settings.ERROR);

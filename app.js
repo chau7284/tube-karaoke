@@ -5,9 +5,9 @@ const io = require('socket.io').listen(server, {
     pingTimeout: 1000,
     pingInterval: 1000
 });
-const bodyParser = require('body-parser');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 //const schedule = require('node-schedule');
 //const seconds = '*/1 * * * * *';
 const settings = require('./settings');
@@ -52,6 +52,7 @@ app.get("/get-farmer", (req, res) => {
 var link = require('./routes/link');
 app.use('/link', link);
 
+//Key Query Link
 var account = require('./routes/account');
 app.use('/account', account);
 
@@ -61,6 +62,7 @@ app.use('/user', user);
 var tracking = require('./routes/tracking');
 app.use('/tracking', tracking);
 
+//Key Active App
 var code = require('./routes/key');
 app.use('/key', code);
 
@@ -70,12 +72,15 @@ app.use('/video', video);
 var history = require('./routes/history');
 app.use('/history', history);
 
+var soundcloud = require('./routes/soundcloud');
+app.use('/soundcloud', soundcloud);
 
 //////////////////////////////////////////////////
 var db = require('./mongo');
+var sc = require('./sc');
 var dbAccount = require('./dbAccount');
 var dbHistory = require('./dbHistory');
-const { Socket } = require('dgram');
+
 const key = async (req, res, next) => {
     try {
         var apiKey = req.query.key;
@@ -110,7 +115,7 @@ const key = async (req, res, next) => {
     }
 }
 
-//Public
+//Public dzolink
 app.get('/get', key, async (req, res) => {
     try {
         var videoId = req.query.videoId;
@@ -147,6 +152,48 @@ app.get('/get', key, async (req, res) => {
                     else
                         console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
                     res.json(streamData);
+                    res.end();
+                });
+            }
+        });
+    } catch (err) {
+        res.json(settings.ERROR);
+        res.end();
+    }
+});
+
+//Public soundcloud
+app.get('/getsc', key, async (req, res) => {
+    try {
+        var id = req.query.id;
+        var url = req.query.url;
+        var clientId = req.query.clientId;
+        console.log("<<<<<- GET-SC: >>>>> " + id);
+        await sc.find_by_id(id, data => {
+            if (data != null) {
+                if (data.url !== undefined || data.url !== "") {
+                    console.log("<<<<<- Query-SC-S3: >>>>> " + id);
+                    res.json(data);
+                    res.end();
+                } else {
+                    console.log("<<<<<- Query-SC-FRAMER-DB: >>>>> " + id);
+                    findFarmerSC(id, url, clientId, req.query.key).then(scData => {
+                        if (scData)
+                            console.log("<<<<<- RETURN-EXTRACT-SC: >>>>> " + id);
+                        else
+                            console.log("<<<<<- RETURN-NULL-SC: >>>>> " + id);
+                        res.json(scData);
+                        res.end();
+                    });
+                }
+            } else {
+                console.log("<<<<<- Query-SC-FAMER-API: >>>>> " + id);
+                findFarmerSC(id, url, clientId, req.query.key).then(scData => {
+                    if (scData)
+                        console.log("<<<<<- RETURN-EXTRACT-SC: >>>>> " + id);
+                    else
+                        console.log("<<<<<- RETURN-NULL-SC: >>>>> " + id);
+                    res.json(scData);
                     res.end();
                 });
             }
@@ -211,6 +258,7 @@ app.get('/get-link', async (req, res) => {
     }
 });
 
+//Test
 function findExtractFarmer(videoId) {
     console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
     return new Promise((resolve) => {
@@ -247,6 +295,7 @@ function findExtractFarmer(videoId) {
     })
 }
 
+//OK YOUTUBE
 function findFarmer(videoId, key) {
     console.log("<<<<<- FARMER-EXTRACT: >>>>> " + videoId);
     return new Promise((resolve) => {
@@ -283,6 +332,59 @@ function findFarmer(videoId, key) {
                         console.log(".....Farmer: " + socket.deviceName + "-> parse null");
                         writeHistory(key, 0);
                         firestore.updatenull(socket.deviceName, videoId, key, 3, "parse: null");
+                    } else {
+                        writeHistory(key, 1);
+                    }
+                });
+            } else {
+                resolve(null);
+                //Log
+                console.log(".....Farmer: -> null");
+                writeHistory(key, 0);
+                firestore.updatenull("unknown", videoId, key, 4, "socket: null");
+            }
+        }
+    })
+}
+
+//OK SOUND CLOUD
+function findFarmerSC(id, url, clientId, key) {
+    const data = id + ";" + url + ";" + clientId;
+    console.log("<<<<<- FARMER-EXTRACT-SC: >>>>> " + id);
+    return new Promise((resolve) => {
+        if (farmers.length <= 0) {
+            farmers = connections.slice(); //copy
+        }
+        if (farmers.length <= 0) {
+            resolve(null);
+            //Log
+            console.log(".....Farmer: -> 0");
+            writeHistory(key, 0);
+            firestore.updatenull("unknown", id, key, 1, "famer: 0");
+        } else {
+            //Framer
+            //var socket = farmers[0];
+            var socket = farmers[Math.floor(Math.random() * farmers.length)]; //get random
+            if (socket != null) {
+                var timeout = setTimeout(() => {
+                    resolve(null);
+                    //Log
+                    console.log(".....Farmer: " + socket.deviceName + "-> timeout 10s");
+                    writeHistory(key, 0);
+                    firestore.updatenull(socket.deviceName, id, key, 2, "famer: timeout 10s");
+                }, TIMEOUT);
+                //farmers.shift();
+                farmers.splice(farmers.indexOf(socket), 1); //remove socket
+                socket.emit("EXTRACT", data);
+                socket.on(id, scData => {
+                    socket.removeAllListeners(id);
+                    clearTimeout(timeout);
+                    resolve(scData);
+                    //Log
+                    if (scData === null) {
+                        console.log(".....Farmer: " + socket.deviceName + "-> parse null");
+                        writeHistory(key, 0);
+                        firestore.updatenull(socket.deviceName, id, key, 3, "parse: null");
                     } else {
                         writeHistory(key, 1);
                     }
@@ -353,9 +455,9 @@ function writeHistory(key, status) {
     var success = 0;
     var error = 0;
 
-    if(status === 1){
+    if (status === 1) {
         success = 1;
-    }else{
+    } else {
         error = 1;
     }
 
@@ -378,22 +480,22 @@ function writeHistory(key, status) {
             "history.$": 1 //Get 1 element
         }
     )
-    .exec((err, his) => {
-        if (his !== null) {
-            //Exist
-            if(status === 1){
-                params.success = his.history[0].success + 1;
-                params.error = his.history[0].error;
-            }else{
-                params.success = his.history[0].success;
-                params.error = his.history[0].error + 1;
+        .exec((err, his) => {
+            if (his !== null) {
+                //Exist
+                if (status === 1) {
+                    params.success = his.history[0].success + 1;
+                    params.error = his.history[0].error;
+                } else {
+                    params.success = his.history[0].success;
+                    params.error = his.history[0].error + 1;
+                }
+                update(key, params);
+            } else {
+                //Not Exist
+                checkKeyExist(key, params);
             }
-            update(key, params);
-        } else {
-            //Not Exist
-            checkKeyExist(key, params);
-        }
-    });
+        });
 }
 
 function checkKeyExist(key, params) {
@@ -402,13 +504,13 @@ function checkKeyExist(key, params) {
             _id: key,
         }
     )
-    .exec((err, his) => {
-        if(his !== null){
-            insert(key, params);
-        }else{
-            insertWithKey(key, params)
-        }
-    });
+        .exec((err, his) => {
+            if (his !== null) {
+                insert(key, params);
+            } else {
+                insertWithKey(key, params)
+            }
+        });
 }
 
 function insertWithKey(key, params) {
@@ -438,7 +540,7 @@ function insert(key, params) {
                     history: params
                 }
             }
-        ).exec((err, result)=>{
+        ).exec((err, result) => {
             console.log("INSERT-HISTORY ->" + key);
         });
     } catch (err) {
