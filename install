@@ -12,7 +12,7 @@ npm install mongoose
 c)3CCDCNwag$Yhhe
 
 FileZilla -> Port 22
-
+cd /home/karaoke
 git clone https://github.com/chau7284/tube-karaoke.git
 
 git pull https://github.com/chau7284/tube-karaoke.git
@@ -22,10 +22,10 @@ pm2 start /home/karaoke/app.js
 
 ssh root@8.12.17.73
 
-0937590127
+0937590127 - Hanet
 Lcy0WF8cWAf6aPc95s7fdB0A4LKm2p6HSjBUTv9tSCR4JCeP
 20123704837_admin
-0902500478
+0902500478 - Dzokara
 FPuG03z3EeDbZhKT0E0SVuzhJ0xE4on3gmlUrAspYahEfsn4
-0924220031
+0924220031 -Test
 6Nh5qvT7sMPXFR5fjC9ay6cXQEnoSd6j8GOqCKiwBM4zXr1z

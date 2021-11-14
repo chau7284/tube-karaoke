@@ -119,23 +119,37 @@ const key = async (req, res, next) => {
 app.get('/get', key, async (req, res) => {
     try {
         var videoId = req.query.videoId;
-        console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
-        await db.find_song_by_id(videoId, song => {
-            if (song != null) {
-                if (song.video.length > 0 && !utils.checkExpire(song.video[0].url)) {
-                    console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                    res.json(song);
-                    res.end();
-                    //Log
-                    writeHistory(req.query.key, 1);
-                } else if (song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)) {
-                    console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
-                    res.json(song);
-                    res.end();
-                    //Log
-                    writeHistory(req.query.key, 1);
+        console.log("<<<<<---------------GET-VIDEO-REQUEST---------------->>>>> ");
+        if (videoId === "") {
+            res.end();
+        } else {
+            console.log("<<<<<- GET-VIDEO: >>>>> " + videoId);
+            await db.find_song_by_id(videoId, song => {
+                if (song != null) {
+                    if (song.video.length > 0 && !utils.checkExpire(song.video[0].url)) {
+                        console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
+                        res.json(song);
+                        res.end();
+                        //Log
+                        writeHistory(req.query.key, 1);
+                    } else if (song.mix.length > 0 && !utils.checkExpire(song.mix[0].url)) {
+                        console.log("<<<<<- RETURN-CACHE: >>>>> " + videoId);
+                        res.json(song);
+                        res.end();
+                        //Log
+                        writeHistory(req.query.key, 1);
+                    } else {
+                        console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
+                        findFarmer(videoId, req.query.key).then(streamData => {
+                            if (streamData)
+                                console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
+                            else
+                                console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
+                            res.json(streamData);
+                            res.end();
+                        });
+                    }
                 } else {
-                    console.log("<<<<<- LINK-EXPIRE: >>>>> " + videoId);
                     findFarmer(videoId, req.query.key).then(streamData => {
                         if (streamData)
                             console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
@@ -145,17 +159,8 @@ app.get('/get', key, async (req, res) => {
                         res.end();
                     });
                 }
-            } else {
-                findFarmer(videoId, req.query.key).then(streamData => {
-                    if (streamData)
-                        console.log("<<<<<- RETURN-EXTRACT: >>>>> " + videoId);
-                    else
-                        console.log("<<<<<- RETURN-NULL: >>>>> " + videoId);
-                    res.json(streamData);
-                    res.end();
-                });
-            }
-        });
+            });
+        }
     } catch (err) {
         res.json(settings.ERROR);
         res.end();
@@ -165,18 +170,33 @@ app.get('/get', key, async (req, res) => {
 //Public soundcloud
 app.get('/getsc', key, async (req, res) => {
     try {
+        console.log("<<<<<-------------GET-SC-REQUEST------------->>>>> ");
         var id = req.query.id;
         var url = req.query.url;
         var clientId = req.query.clientId;
-        console.log("<<<<<- GET-SC: >>>>> " + id);
-        await sc.find_by_id(id, data => {
-            if (data != null) {
-                if (data.url !== undefined || data.url !== "") {
-                    console.log("<<<<<- Query-SC-S3: >>>>> " + id);
-                    res.json(data);
-                    res.end();
+        if (clientId === "") {
+            res.end();
+        } else {
+            console.log("<<<<<- GET-SC: >>>>> " + id);
+            await sc.find_by_id(id, data => {
+                if (data != null) {
+                    if (data.url !== undefined || data.url !== "") {
+                        console.log("<<<<<- Query-SC-S3: >>>>> " + id);
+                        res.json(data);
+                        res.end();
+                    } else {
+                        console.log("<<<<<- Query-SC-FRAMER-DB: >>>>> " + id);
+                        findFarmerSC(id, url, clientId, req.query.key).then(scData => {
+                            if (scData)
+                                console.log("<<<<<- RETURN-EXTRACT-SC: >>>>> " + id);
+                            else
+                                console.log("<<<<<- RETURN-NULL-SC: >>>>> " + id);
+                            res.json(scData);
+                            res.end();
+                        });
+                    }
                 } else {
-                    console.log("<<<<<- Query-SC-FRAMER-DB: >>>>> " + id);
+                    console.log("<<<<<- Query-SC-FAMER-API: >>>>> " + id);
                     findFarmerSC(id, url, clientId, req.query.key).then(scData => {
                         if (scData)
                             console.log("<<<<<- RETURN-EXTRACT-SC: >>>>> " + id);
@@ -186,18 +206,8 @@ app.get('/getsc', key, async (req, res) => {
                         res.end();
                     });
                 }
-            } else {
-                console.log("<<<<<- Query-SC-FAMER-API: >>>>> " + id);
-                findFarmerSC(id, url, clientId, req.query.key).then(scData => {
-                    if (scData)
-                        console.log("<<<<<- RETURN-EXTRACT-SC: >>>>> " + id);
-                    else
-                        console.log("<<<<<- RETURN-NULL-SC: >>>>> " + id);
-                    res.json(scData);
-                    res.end();
-                });
-            }
-        });
+            });
+        }
     } catch (err) {
         res.json(settings.ERROR);
         res.end();
