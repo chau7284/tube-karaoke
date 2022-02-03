@@ -31,14 +31,14 @@ const DATABASE_CONNECT_OPTION = {
     useUnifiedTopology: true
 };
 //Connnect Mongo DB
-mongoose.connect(DATABASE_URL, DATABASE_CONNECT_OPTION);
-mongoose.connection.on("connected", () => {
-    console.log("Connected to database successfully");
-});
-//Error Mongo DB
-mongoose.connection.on("disconnected", () => {
-    console.log("Can not connected to database");
-});
+// mongoose.connect(DATABASE_URL, DATABASE_CONNECT_OPTION);
+// mongoose.connection.on("connected", () => {
+//     console.log("Connected to database successfully");
+// });
+// //Error Mongo DB
+// mongoose.connection.on("disconnected", () => {
+//     console.log("Can not connected to database");
+// });
 ////////////////////END-MONGO///////////////////////
 
 app.get("/", (req, res) => {
