@@ -49,6 +49,23 @@ app.get("/get-farmer", (req, res) => {
     res.send(String(farmers.length) + "/" + String(connections.length));
 });
 
+//Tube Karaoke
+router.get("/app-config", async (req, res) => {
+    if (req.headers['secret'] !== "kingpes") {
+        res.json(settings.UN_AUTH);
+        res.end();
+        return;
+    }
+    res.json(
+        {
+            "versionName": "1.0.4",
+            "secretKey": settings.SECRET,
+            "privateKey": settings.KEY,
+            "nextVersion": ""
+        }
+    );
+});
+
 var link = require('./routes/link');
 app.use('/link', link);
 
