@@ -20,6 +20,15 @@ git pull https://github.com/chau7284/tube-karaoke.git
 pm2 stop all
 pm2 start /home/karaoke/app.js
 
+//Start
+sudo systemctl start mongod
+
+//Reload
+sudo systemctl reload mongod
+
+//Stop
+sudo systemctl stop mongod
+
 ssh root@8.12.17.73
 
 0937590127 - Hanet

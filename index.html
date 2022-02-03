@@ -8,10 +8,10 @@
     <title>Tube Karaoke V1.0.0</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
             margin-top: 30px;
+            align-self: center;
         }
     </style>
 </head>
@@ -19,52 +19,18 @@
 <body>
     <div class="container">
 
-        <label id="timestamp"> Time </label>
+        <h2> Kingpes </h2>
 
-        <div id="broadcastArea" class="row">
+        <div class="row">
             <div class="col-md-12">
                 <div class="well">
-                    <h4 id="user-online">Users Online:</h4>
-                    <ul class="list-group" id="broadcast"></ul>
+                    <h4>Cung cấp giải pháp ca hát online chuyên nghiệp!</h4>
+                    <h4>Liên hệ: kingpesvn@gmail.com</h4>
                 </div>
             </div>
         </div>
 
-        <label id="videoid"> Video Id: </label>
-        <form id="form">
-            <div class="form-group">
-                <label for="">Enter Message:</label>
-                <input class="form-control" id="input-message"></input>
-                <br />
-                <input type="submit" class="btn btn-primary" value="Done">
-            </div>
-        </form>
-
     </div>
-
-    <script>
-        $(() => {
-            var socket = io.connect();
-            var vId;
-            socket.on('timestamp', (time, connect) => {
-                $('#timestamp').html(time);
-                $('#user-online').html("Users Online: " + (connect - 1));
-            });
-
-            socket.on('EXTRACT', (videoId) => {
-                vId = videoId;
-                $('#videoid').html(videoId);
-            });
-
-            $('#form').submit((e) =>{
-                e.preventDefault();
-                var data = {
-                    "videoId": $('#input-message').val()
-                }
-                socket.emit(vId,data);
-            });
-        });
-    </script>
 
 </body>
 
