@@ -50,7 +50,7 @@ app.get("/get-farmer", (req, res) => {
 });
 
 //Tube Karaoke
-router.get("/app-config", async (req, res) => {
+app.get("/app-config", async (req, res) => {
     if (req.headers['secret'] !== "kingpes") {
         res.json(settings.UN_AUTH);
         res.end();
